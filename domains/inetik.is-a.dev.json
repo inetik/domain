@@ -1,0 +1,10 @@
+{
+  "subdomain": "inetik",
+  "owner": {
+    "email": "hola@inetik.is-a.dev",
+    "github": "inetik"
+  },
+  "record": {
+    "CNAME": "domain.github.io"
+  }
+}
