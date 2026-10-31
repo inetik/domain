@@ -5,15 +5,7 @@ import { ROOMS } from '../../lib/catalog'
 import { BOUNDS, HOUSE, type RoomCounts } from './layout'
 
 /** Plano 2D animado: se usa si el teléfono no tiene WebGL o si apagaste el 3D. */
-export function HouseFallback({
-  counts,
-  selected,
-  onSelect,
-}: {
-  counts: Record<RoomId, RoomCounts>
-  selected: RoomId | null
-  onSelect: (room: RoomId | null) => void
-}) {
+export function HouseFallback({ counts, selected, onSelect }: { counts: Record<RoomId, RoomCounts>; selected: RoomId | null; onSelect: (room: RoomId | null) => void }) {
   const W = BOUNDS.maxX - BOUNDS.minX
   const D = BOUNDS.maxZ - BOUNDS.minZ
   return (

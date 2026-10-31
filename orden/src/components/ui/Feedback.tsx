@@ -23,10 +23,7 @@ export function Toaster() {
             onDragEnd={(_, info) => Math.abs(info.offset.x) > 80 && dismissToast()}
             className="glass pointer-events-auto flex min-h-12 w-full max-w-md items-center gap-3 rounded-2xl border border-line py-2 pr-2 pl-4 shadow-2"
           >
-            <span
-              className={cn('size-2 shrink-0 rounded-full', toast.tone === 'warn' ? 'bg-warn' : toast.tone === 'success' ? 'bg-success' : 'bg-accent')}
-              aria-hidden
-            />
+            <span className={cn('size-2 shrink-0 rounded-full', toast.tone === 'warn' ? 'bg-warn' : toast.tone === 'success' ? 'bg-success' : 'bg-accent')} aria-hidden />
             <span className="min-w-0 flex-1 text-callout text-ink">{toast.message}</span>
             {toast.action && (
               <button
@@ -57,12 +54,7 @@ interface EmptyStateProps {
 
 export function EmptyState({ icon: Icon, title, body, action, color = 'var(--accent-stroke)' }: EmptyStateProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={spring.gentle}
-      className="flex flex-col items-center px-6 pt-6 pb-4 text-center"
-    >
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={spring.gentle} className="flex flex-col items-center px-6 pt-6 pb-4 text-center">
       <motion.div
         className="relative mb-5 flex size-20 items-center justify-center rounded-[28px] border border-line bg-surface-1"
         animate={{ rotate: [0, -4, 4, 0] }}

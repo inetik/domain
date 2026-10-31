@@ -1,4 +1,4 @@
-import { ArrowRight, ChevronRight, Dices, HardHat, Lightbulb, PartyPopper, Settings, TriangleAlert, Waypoints } from 'lucide-react'
+import { ArrowRight, ChevronRight, Dices, HardHat, Lightbulb, PartyPopper, Settings, Smartphone, TriangleAlert, Waypoints } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useMemo } from 'react'
 import { useData } from '../../app/data'
@@ -11,6 +11,7 @@ import { rise, stagger } from '../../design/motion'
 import { formatMinutes, plural, ROOM_ORDER, ROOMS } from '../../lib/catalog'
 import { capatazInsights, type Insight } from '../../lib/capataz'
 import { greeting, longDate } from '../../lib/dates'
+import { isIOS, isStandalone } from '../../lib/device'
 import { isOpen, isSnoozed, roomSummary } from '../../lib/stats'
 import { HouseCard } from '../house3d/HouseCard'
 import { TaskCard } from '../tasks/TaskCard'
@@ -24,7 +25,8 @@ const TONE: Record<Insight['tone'], { icon: typeof Lightbulb; color: string }> =
 
 export function CasaScreen() {
   const { tasks } = useData()
-  const { openTask, setSuggestOpen } = useUI()
+  const { openTask, setSuggestOpen, setInstallGuide } = useUI()
+  const inSafari = isIOS() && !isStandalone()
   const insights = useMemo(() => capatazInsights(tasks), [tasks])
   const top = insights[0]
   const rest = insights.slice(1, 7)
@@ -62,6 +64,22 @@ export function CasaScreen() {
           <Settings className="size-5" />
         </IconButton>
       </motion.header>
+
+      {inSafari && (
+        <motion.button
+          variants={rise}
+          type="button"
+          onClick={() => setInstallGuide(true)}
+          className="-mt-4 flex w-full items-center gap-3 rounded-[20px] border border-warn/30 bg-warn/10 px-4 py-3 text-left"
+          data-testid="install-banner"
+        >
+          <Smartphone className="size-5 shrink-0 text-warn-ink" />
+          <span className="min-w-0 flex-1 text-footnote text-ink">
+            <strong>Estás en Safari.</strong> Instalala en la pantalla de inicio para no perder lo que cargues.
+          </span>
+          <ArrowRight className="size-4 shrink-0 text-ink-3" />
+        </motion.button>
+      )}
 
       {top && (
         <motion.button

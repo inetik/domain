@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useUI } from '../../app/ui'
 import { IconButton } from '../../components/ui/Button'
-import { addPhoto, deletePhoto } from '../../db/repo'
+import { addPhoto, deletePhoto, restorePhoto } from '../../db/repo'
 import { db } from '../../db/schema'
 import type { Photo, PhotoKind } from '../../db/types'
 import { spring } from '../../design/motion'
@@ -103,6 +103,7 @@ function AddPhoto({ taskId, kind }: { taskId: string; kind: PhotoKind }) {
 
 function PhotoViewer({ photo, onClose }: { photo: Photo | null; onClose: () => void }) {
   const url = usePhotoUrl(photo ?? undefined)
+  const { showToast } = useUI()
   return createPortal(
     <AnimatePresence>
       {photo && (
@@ -115,14 +116,21 @@ function PhotoViewer({ photo, onClose }: { photo: Photo | null; onClose: () => v
               label="Borrar foto"
               tone="glass"
               onClick={async () => {
-                await deletePhoto(photo.id)
+                const removed = photo
+                await deletePhoto(removed.id)
                 onClose()
+                showToast({ message: 'Foto borrada', tone: 'warn', action: { label: 'Deshacer', onClick: () => restorePhoto(removed) } })
               }}
             >
               <Trash2 className="size-5 text-danger" />
             </IconButton>
           </div>
-          <motion.div className="flex min-h-0 flex-1 items-center justify-center p-4" drag="y" dragConstraints={{ top: 0, bottom: 0 }} onDragEnd={(_, i) => Math.abs(i.offset.y) > 100 && onClose()}>
+          <motion.div
+            className="flex min-h-0 flex-1 items-center justify-center p-4"
+            drag="y"
+            dragConstraints={{ top: 0, bottom: 0 }}
+            onDragEnd={(_, i) => Math.abs(i.offset.y) > 100 && onClose()}
+          >
             {url && <motion.img layoutId={`photo-${photo.id}`} transition={spring.gentle} src={url} alt="" className="max-h-full max-w-full rounded-2xl object-contain" />}
           </motion.div>
         </motion.div>

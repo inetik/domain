@@ -78,7 +78,10 @@ export function ListaScreen({ id }: { id: string }) {
         }
       />
       <motion.header variants={rise} className="mt-3 flex items-center gap-4">
-        <span className="flex size-16 shrink-0 items-center justify-center rounded-[22px] text-[34px]" style={{ background: `color-mix(in oklab, ${color} 22%, transparent)`, color }}>
+        <span
+          className="flex size-16 shrink-0 items-center justify-center rounded-[22px] text-[34px]"
+          style={{ background: `color-mix(in oklab, ${color} 22%, transparent)`, color }}
+        >
           {Icon ? <Icon className="size-8" /> : custom!.emoji}
         </span>
         <div className="min-w-0">
@@ -141,7 +144,16 @@ function TaskPicker({ open, onClose, list }: { open: boolean; onClose: () => voi
   const { tasks } = useData()
   const candidates = tasks.filter(isOpen)
   return (
-    <Sheet open={open} onClose={onClose} label="Sumar tareas a la lista" footer={<Button variant="primary" size="lg" block onClick={onClose}>Listo</Button>}>
+    <Sheet
+      open={open}
+      onClose={onClose}
+      label="Sumar tareas a la lista"
+      footer={
+        <Button variant="primary" size="lg" block onClick={onClose}>
+          Listo
+        </Button>
+      }
+    >
       <h2 className="mt-1 mb-4 font-serif text-[28px] leading-none text-ink">
         Sumar a {list.emoji} {list.name}
       </h2>
@@ -156,7 +168,10 @@ function TaskPicker({ open, onClose, list }: { open: boolean; onClose: () => voi
             aria-pressed={inList}
             className="flex min-h-14 w-full items-center gap-3 border-b border-line py-2 text-left last:border-0"
           >
-            <span className={cn('flex size-6 shrink-0 items-center justify-center rounded-lg border-2 transition-colors', inList ? 'border-transparent' : 'border-line-strong')} style={inList ? { background: list.color } : undefined}>
+            <span
+              className={cn('flex size-6 shrink-0 items-center justify-center rounded-lg border-2 transition-colors', inList ? 'border-transparent' : 'border-line-strong')}
+              style={inList ? { background: list.color } : undefined}
+            >
               {inList && <Check className="size-3.5 text-[#0b0b10]" strokeWidth={3.5} />}
             </span>
             <span className="min-w-0 flex-1">

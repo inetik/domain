@@ -164,11 +164,32 @@ export function capatazInsights(tasks: Task[], now = Date.now()): Insight[] {
   const s = streak(tasks, now)
   const week = completedSince(tasks, startOfWeek(now)).length
   if (s >= 2) {
-    out.push({ id: 'streak', tone: 'win', title: `${s} días seguidos`, body: 'Venís con racha. Una más hoy y no se corta.', score: 80, action: { kind: 'suggest', label: '¿Qué hago?' } })
+    out.push({
+      id: 'streak',
+      tone: 'win',
+      title: `${s} días seguidos`,
+      body: 'Venís con racha. Una más hoy y no se corta.',
+      score: 80,
+      action: { kind: 'suggest', label: '¿Qué hago?' },
+    })
   } else if (week > 0) {
-    out.push({ id: 'week', tone: 'win', title: `${week} ${week === 1 ? 'hecha' : 'hechas'} esta semana`, body: 'Buen ritmo. Seguí con una cortita.', score: 45, action: { kind: 'suggest', label: '¿Qué hago?' } })
+    out.push({
+      id: 'week',
+      tone: 'win',
+      title: `${week} ${week === 1 ? 'hecha' : 'hechas'} esta semana`,
+      body: 'Buen ritmo. Seguí con una cortita.',
+      score: 45,
+      action: { kind: 'suggest', label: '¿Qué hago?' },
+    })
   } else {
-    out.push({ id: 'start', tone: 'tip', title: '¿Arrancamos?', body: 'Decime cuánto tiempo tenés y te elijo una tarea.', score: 40, action: { kind: 'suggest', label: 'Elegime una' } })
+    out.push({
+      id: 'start',
+      tone: 'tip',
+      title: '¿Arrancamos?',
+      body: 'Decime cuánto tiempo tenés y te elijo una tarea.',
+      score: 40,
+      action: { kind: 'suggest', label: 'Elegime una' },
+    })
   }
 
   return out.sort((a, b) => b.score - a.score)

@@ -46,10 +46,9 @@ function Shell() {
   const hash = useHash()
   const route = useMemo(() => parseHash(hash), [hash])
   const { tasks, ready } = useData()
-  const { showToast } = useUI()
+  const { showToast, installGuide, setInstallGuide } = useUI()
   const [booted, setBooted] = useState(false)
   const [welcome, setWelcome] = useState(false)
-  const [guide, setGuide] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -65,7 +64,11 @@ function Shell() {
       const since = await getMeta<number>('installedAt')
       const ref = last ?? since ?? Date.now()
       if (welcomed && Date.now() - ref > 7 * 24 * 60 * 60 * 1000) {
-        showToast({ message: last ? 'Hace más de una semana que no guardás una copia' : 'Guardá tu primera copia de seguridad', tone: 'warn', action: { label: 'Guardar', onClick: () => saveBackup() } })
+        showToast({
+          message: last ? 'Hace más de una semana que no guardás una copia' : 'Guardá tu primera copia de seguridad',
+          tone: 'warn',
+          action: { label: 'Guardar', onClick: () => saveBackup() },
+        })
       }
     })()
     return () => {
@@ -84,7 +87,7 @@ function Shell() {
   const finishWelcome = async () => {
     await setMeta('welcomed', true)
     setWelcome(false)
-    if (isIOS() && !isStandalone()) setTimeout(() => setGuide(true), 500)
+    if (isIOS() && !isStandalone()) setTimeout(() => setInstallGuide(true), 500)
   }
 
   const badge = tasks.filter((t) => isActive(t)).length
@@ -119,7 +122,7 @@ function Shell() {
       <TaskDetail />
       <QuickAdd />
       <SuggestSheet />
-      <InstallGuide open={guide} onClose={() => setGuide(false)} />
+      <InstallGuide open={installGuide} onClose={() => setInstallGuide(false)} />
       <Toaster />
       <RoomCelebration />
       <AnimatePresence>{welcome && booted && <Welcome onDone={finishWelcome} />}</AnimatePresence>

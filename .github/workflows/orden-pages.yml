@@ -16,7 +16,8 @@ permissions:
 
 concurrency:
     group: orden-pages
-    cancel-in-progress: true
+    # Igual que la plantilla oficial de Pages: no cortar un deploy a la mitad
+    cancel-in-progress: false
 
 jobs:
     build:
@@ -26,9 +27,9 @@ jobs:
             run:
                 working-directory: orden
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v5
 
-            - uses: actions/setup-node@v4
+            - uses: actions/setup-node@v5
               with:
                   node-version: 22
                   cache: npm
@@ -44,7 +45,7 @@ jobs:
               env:
                   ORDEN_BASE: /${{ github.event.repository.name }}/
 
-            - uses: actions/upload-pages-artifact@v3
+            - uses: actions/upload-pages-artifact@v4
               with:
                   path: orden/dist
 

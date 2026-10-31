@@ -41,7 +41,10 @@ const ROOM_RULES: { room: RoomId; re: RegExp; weight: number }[] = [
 const CATEGORY_RULES: { category: CategoryId; re: RegExp }[] = [
   { category: 'venta', re: w('vender|venta|publicar|marketplace|mercado ?libre') },
   { category: 'compras', re: w('comprar|compra') },
-  { category: 'electricidad', re: w('enchufes?|tomas?|cablear|cableado|cables?|cable ?canal|luz|luces|led|lámparas?|lamparas?|lamparitas?|focos?|térmica|termica|eléctric\\p{L}*|electric\\p{L}*|disyuntor') },
+  {
+    category: 'electricidad',
+    re: w('enchufes?|tomas?|cablear|cableado|cables?|cable ?canal|luz|luces|led|lámparas?|lamparas?|lamparitas?|focos?|térmica|termica|eléctric\\p{L}*|electric\\p{L}*|disyuntor'),
+  },
   { category: 'carpinteria', re: w('madera|carpinter\\p{L}*|lijar|barnizar|serrucho|melamina') },
   { category: 'limpieza', re: w('limpiar|lavar|desengrasar|aspirar|limpieza|desinfectar') },
   { category: 'orden', re: w('acomodar|ordenar|organizar|guardar|clasificar|tirar') },
@@ -179,7 +182,12 @@ export function parseQuickAdd(input: string, knownPeople: string[] = [], now = D
     }
   }
 
-  const title = capitalize(text.replace(/\s+/g, ' ').replace(/^[\s,.;:-]+|[\s,.;:-]+$/g, '').trim())
+  const title = capitalize(
+    text
+      .replace(/\s+/g, ' ')
+      .replace(/^[\s,.;:-]+|[\s,.;:-]+$/g, '')
+      .trim(),
+  )
   const meta = CATEGORIES[category]
 
   return {

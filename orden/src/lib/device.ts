@@ -11,7 +11,10 @@ export function isStandalone(): boolean {
 export function hasWebGL(): boolean {
   try {
     const canvas = document.createElement('canvas')
-    return !!(canvas.getContext('webgl2') || canvas.getContext('webgl'))
+    const gl = canvas.getContext('webgl2') || canvas.getContext('webgl')
+    // Liberar el contexto de prueba (iOS limita cuántos puede haber abiertos)
+    gl?.getExtension('WEBGL_lose_context')?.loseContext()
+    return !!gl
   } catch {
     return false
   }

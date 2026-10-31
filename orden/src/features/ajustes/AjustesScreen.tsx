@@ -15,14 +15,12 @@ import { rise, stagger } from '../../design/motion'
 import { plural } from '../../lib/catalog'
 import { daysAgo, dayLabel } from '../../lib/dates'
 import { isStandalone, requestPersistentStorage } from '../../lib/device'
-import { InstallGuide } from '../onboarding/InstallGuide'
 import { CloudPanel } from './CloudPanel'
 
 export function AjustesScreen() {
-  const { theme, setTheme, scene3d, setScene3d, showToast } = useUI()
+  const { theme, setTheme, scene3d, setScene3d, showToast, setInstallGuide } = useUI()
   const lastBackup = useLiveQuery(() => db.meta.get('lastBackupAt').then((r) => r?.value as number | undefined), [])
   const [persisted, setPersisted] = useState<boolean | null>(null)
-  const [guide, setGuide] = useState(false)
   const [pending, setPending] = useState<BackupFile | null>(null)
   const [confirmWipe, setConfirmWipe] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
@@ -46,7 +44,15 @@ export function AjustesScreen() {
           icon={<Smartphone className="size-5" />}
           title={installed ? 'Instalada como app' : 'Instalala en la pantalla de inicio'}
           body={installed ? 'Funciona sin internet y a pantalla completa.' : 'Tres toques desde Safari, sin App Store.'}
-          action={installed ? <Check className="size-5 text-success-ink" /> : <Button size="sm" className="h-10" onClick={() => setGuide(true)}>Cómo</Button>}
+          action={
+            installed ? (
+              <Check className="size-5 text-success-ink" />
+            ) : (
+              <Button size="sm" onClick={() => setInstallGuide(true)}>
+                Cómo
+              </Button>
+            )
+          }
         />
         <Row
           icon={<ShieldCheck className="size-5" />}
@@ -57,7 +63,8 @@ export function AjustesScreen() {
 
       <Group title="Copias de seguridad">
         <p className="text-callout text-ink-2">
-          {lastBackup ? `Última copia: ${dayLabel(lastBackup).toLowerCase()}${daysAgo(lastBackup) > 7 ? ' — ya toca otra' : ''}.` : 'Todavía no guardaste ninguna copia.'} En el iPhone elegí “Guardar en Archivos” (iCloud Drive).
+          {lastBackup ? `Última copia: ${dayLabel(lastBackup).toLowerCase()}${daysAgo(lastBackup) > 7 ? ' — ya toca otra' : ''}.` : 'Todavía no guardaste ninguna copia.'} En el
+          iPhone elegí “Guardar en Archivos” (iCloud Drive).
         </p>
         <div className="mt-3 flex gap-2">
           <Button
@@ -126,7 +133,7 @@ export function AjustesScreen() {
       <Group title="Datos">
         {confirmWipe ? (
           <div className="space-y-2">
-            <p className="text-callout text-ink">¿Seguro? Se borra todo lo de este teléfono. Si no tenés copia, no se puede recuperar.</p>
+            <p className="text-callout text-ink">¿Seguro? Se borra todo lo de este teléfono y vuelven los 13 pendientes iniciales. Si no tenés copia, no se puede recuperar.</p>
             <div className="flex gap-2">
               <Button className="flex-1" onClick={() => setConfirmWipe(false)}>
                 Cancelar
@@ -139,7 +146,7 @@ export function AjustesScreen() {
                   await seedIfNeeded()
                   await setMeta('welcomed', true)
                   setConfirmWipe(false)
-                  showToast({ message: 'Empezaste de cero', tone: 'warn' })
+                  showToast({ message: 'Listo: volviste a los pendientes iniciales', tone: 'warn' })
                 }}
               >
                 Borrar todo
@@ -148,7 +155,7 @@ export function AjustesScreen() {
           </div>
         ) : (
           <Button variant="danger" block icon={<Trash2 className="size-4" />} onClick={() => setConfirmWipe(true)}>
-            Borrar todo y empezar de cero
+            Borrar todo y volver al inicio
           </Button>
         )}
       </Group>
@@ -159,14 +166,13 @@ export function AjustesScreen() {
         Tus datos viven en este teléfono.
       </p>
 
-      <InstallGuide open={guide} onClose={() => setGuide(false)} />
       <Sheet open={!!pending} onClose={() => setPending(null)} label="Restaurar copia">
         {pending && (
           <div className="pb-2">
             <h2 className="mt-1 font-serif text-[28px] leading-none text-ink">Restaurar copia</h2>
             <p className="mt-3 text-callout text-ink-2">
-              La copia tiene {plural(pending.tasks.length, 'tarea', 'tareas')}, {plural(pending.lists.length, 'lista', 'listas')} y {plural(pending.photos.length, 'foto', 'fotos')} (
-              {dayLabel(pending.exportedAt).toLowerCase()}).
+              La copia tiene {plural(pending.tasks.length, 'tarea', 'tareas')}, {plural(pending.lists.length, 'lista', 'listas')} y {plural(pending.photos.length, 'foto', 'fotos')}{' '}
+              ({dayLabel(pending.exportedAt).toLowerCase()}).
             </p>
             <div className="mt-5 space-y-2">
               <Button
@@ -174,9 +180,13 @@ export function AjustesScreen() {
                 block
                 size="lg"
                 onClick={async () => {
-                  const r = await importBackup(pending, 'merge')
+                  const r = await importBackup(pending, 'merge').catch(() => null)
                   setPending(null)
-                  showToast({ message: r.tasks ? `Combinado: ${plural(r.tasks, 'tarea actualizada', 'tareas actualizadas')}` : 'Combinado: ya tenías todo al día', tone: 'success' })
+                  if (!r) return showToast({ message: 'No pude leer la copia. Tus datos quedaron como estaban.', tone: 'warn' })
+                  showToast({
+                    message: r.tasks ? `Combinado: ${plural(r.tasks, 'tarea actualizada', 'tareas actualizadas')}` : 'Combinado: ya tenías todo al día',
+                    tone: 'success',
+                  })
                 }}
               >
                 Combinar con lo que tengo
@@ -186,8 +196,9 @@ export function AjustesScreen() {
                 block
                 size="lg"
                 onClick={async () => {
-                  await importBackup(pending, 'replace')
+                  const r = await importBackup(pending, 'replace').catch(() => null)
                   setPending(null)
+                  if (!r) return showToast({ message: 'No pude leer la copia. Tus datos quedaron como estaban.', tone: 'warn' })
                   showToast({ message: 'Copia restaurada', tone: 'success' })
                 }}
               >
@@ -234,7 +245,11 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: 
       className="relative h-8 w-[52px] shrink-0 rounded-full transition-colors"
       style={{ background: checked ? 'var(--accent)' : 'var(--surface-3)' }}
     >
-      <motion.span className="absolute top-1 left-1 size-6 rounded-full bg-white shadow-1" animate={{ x: checked ? 20 : 0 }} transition={{ type: 'spring', stiffness: 600, damping: 35 }} />
+      <motion.span
+        className="absolute top-1 left-1 size-6 rounded-full bg-white shadow-1"
+        animate={{ x: checked ? 20 : 0 }}
+        transition={{ type: 'spring', stiffness: 600, damping: 35 }}
+      />
     </button>
   )
 }

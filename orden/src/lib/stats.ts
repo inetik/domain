@@ -2,7 +2,6 @@ import type { RoomId, Task } from '../db/types'
 import { DAY, startOfDay } from './dates'
 
 export const isAlive = (t: Task) => !t.deletedAt
-export const isDone = (t: Task) => t.status === 'hecha'
 export const isOpen = (t: Task) => !t.deletedAt && t.status !== 'hecha'
 export const isSnoozed = (t: Task, now = Date.now()) => isOpen(t) && !!t.snoozedUntil && t.snoozedUntil > now
 /** Abierta y no pospuesta: lo que cuenta como "pendiente" en todas las pantallas. */

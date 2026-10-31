@@ -107,8 +107,17 @@ export const SEED_TASKS: NewTask[] = [
 ]
 
 export const SEED_LIST_NAME = 'Para este finde'
+export const SEED_LIST_ID = 'semilla-lista-finde'
+const SEED_VERSION = 1
+export const seedId = (i: number) => `semilla-${String(i + 1).padStart(2, '0')}`
 
-/** Carga los pendientes iniciales una sola vez. Devuelve true si sembró. */
+/**
+ * Carga los pendientes iniciales una sola vez. Devuelve true si sembró.
+ *
+ * Los registros sembrados tienen ids fijos y `updatedAt: 1`: si otro dispositivo (o una
+ * copia de seguridad) trae los mismos pendientes, se reconocen como el mismo registro en
+ * vez de duplicarse, y cualquier edición real gana en la combinación.
+ */
 export async function seedIfNeeded(now = Date.now()): Promise<boolean> {
   return db.transaction('rw', [db.tasks, db.lists, db.logs, db.meta], async () => {
     if (await getMeta<boolean>('seeded')) return false
@@ -116,14 +125,18 @@ export async function seedIfNeeded(now = Date.now()): Promise<boolean> {
       await setMeta('seeded', true)
       return false
     }
-    const list: TaskList = { id: uid(), name: SEED_LIST_NAME, emoji: '🚀', color: '#c6f432', createdAt: now, updatedAt: now }
+    const list: TaskList = { id: SEED_LIST_ID, name: SEED_LIST_NAME, emoji: '🚀', color: '#c6f432', createdAt: now, updatedAt: SEED_VERSION }
     const quickWins = new Set(['Dar vuelta el palo de la cortina', 'Limpiar grifería de los baños', 'Acomodar cajones de la cómoda'])
     const tasks: Task[] = SEED_TASKS.map((input, i) => {
       const t = buildTask(input, now - (SEED_TASKS.length - i))
+      t.id = seedId(i)
+      t.updatedAt = SEED_VERSION
+      t.subtasks = t.subtasks.map((s, j) => ({ ...s, id: `${t.id}-paso-${j + 1}` }))
+      t.materials = t.materials.map((m, j) => ({ ...m, id: `${t.id}-material-${j + 1}` }))
       if (quickWins.has(t.title)) t.listIds = [list.id]
       return t
     })
-    const logs: LogEntry[] = tasks.map((t) => ({ id: uid(), taskId: t.id, taskTitle: t.title, room: t.room, type: 'creada', at: t.createdAt }))
+    const logs: LogEntry[] = tasks.map((t) => ({ id: `${t.id}-creada`, taskId: t.id, taskTitle: t.title, room: t.room, type: 'creada', at: t.createdAt }))
     await db.lists.add(list)
     await db.tasks.bulkAdd(tasks)
     await db.logs.bulkAdd(logs)

@@ -79,7 +79,11 @@ export const TaskCard = forwardRef<HTMLDivElement, TaskCardProps>(function TaskC
       <div className="relative overflow-hidden rounded-[22px]">
         {/* Acciones que aparecen al deslizar */}
         <motion.div className="absolute inset-0 flex items-center justify-start rounded-[22px] bg-success pl-6" style={{ opacity: doneOpacity }} aria-hidden>
-          <motion.span style={{ scale: iconScale }} animate={armed === 'done' ? { rotate: [0, -8, 8, 0] } : {}} className={cn('flex items-center gap-2 font-semibold text-[#06281b]', armed === 'done' && 'scale-125')}>
+          <motion.span
+            style={{ scale: iconScale }}
+            animate={armed === 'done' ? { rotate: [0, -8, 8, 0] } : {}}
+            className={cn('flex items-center gap-2 font-semibold text-[#06281b]', armed === 'done' && 'scale-125')}
+          >
             <Check className="size-6" strokeWidth={3} /> {done ? 'Reabrir' : 'Hecha'}
           </motion.span>
         </motion.div>
@@ -121,16 +125,15 @@ export const TaskCard = forwardRef<HTMLDivElement, TaskCardProps>(function TaskC
             {celebrating && <Burst />}
           </button>
 
-          <button
-            type="button"
-            onClick={() => Date.now() - draggedAt.current > 300 && openTask(task.id)}
-            className="min-w-0 flex-1 text-left"
-            aria-label={`Abrir ${task.title}`}
-          >
+          <button type="button" onClick={() => Date.now() - draggedAt.current > 300 && openTask(task.id)} className="min-w-0 flex-1 text-left" aria-label={`Abrir ${task.title}`}>
             <div className="flex items-start gap-2">
               <span className={cn('min-w-0 flex-1 text-[16px] leading-snug font-medium text-ink', done && 'line-through decoration-ink-3')}>{task.title}</span>
               {task.priority > 0 && !done && (
-                <Flame className={cn('mt-0.5 size-4 shrink-0', task.priority === 2 ? 'text-danger-ink' : 'text-warn-ink')} fill="currentColor" aria-label={task.priority === 2 ? 'Urgente' : 'Importante'} />
+                <Flame
+                  className={cn('mt-0.5 size-4 shrink-0', task.priority === 2 ? 'text-danger-ink' : 'text-warn-ink')}
+                  fill="currentColor"
+                  aria-label={task.priority === 2 ? 'Urgente' : 'Importante'}
+                />
               )}
             </div>
             <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-caption text-ink-3">

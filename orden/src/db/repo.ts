@@ -13,6 +13,11 @@ export function onLocalChange(fn: Listener): () => void {
   return () => listeners.delete(fn)
 }
 
+/** Marca de tiempo que siempre avanza, aunque el reloj del teléfono esté atrasado. */
+function bump(previous: number): number {
+  return Math.max(Date.now(), previous + 1)
+}
+
 function changed() {
   for (const fn of listeners) fn()
 }
@@ -67,18 +72,13 @@ export function updateTask(id: string, patch: Partial<Task>, logType: LogType | 
  * Como updateTask, pero el cambio se calcula a partir de la tarea tal como está guardada
  * (dentro de la transacción). Así dos toques rápidos no se pisan entre sí.
  */
-export async function mutateTask(
-  id: string,
-  change: (task: Task) => Partial<Task> | null,
-  logType: LogType | null = 'editada',
-  detail?: string,
-): Promise<string | undefined> {
+export async function mutateTask(id: string, change: (task: Task) => Partial<Task> | null, logType: LogType | null = 'editada', detail?: string): Promise<string | undefined> {
   const logId = await db.transaction('rw', db.tasks, db.logs, async () => {
     const task = await db.tasks.get(id)
     if (!task) return undefined
     const patch = change(task)
     if (!patch) return undefined
-    const next = { ...task, ...patch, updatedAt: Date.now() }
+    const next = { ...task, ...patch, updatedAt: bump(task.updatedAt) }
     await db.tasks.put(next)
     if (logType) {
       // Las ediciones seguidas de la misma tarea se agrupan en una sola entrada del registro.
@@ -127,7 +127,8 @@ export function restoreTask(id: string) {
 /** Vuelve una tarea a un estado anterior exacto (para "Deshacer") y borra la anotación del cambio. */
 export async function revertTask(snapshot: Task, logId?: string) {
   await db.transaction('rw', db.tasks, db.logs, async () => {
-    await db.tasks.put({ ...snapshot, updatedAt: Date.now() })
+    const current = await db.tasks.get(snapshot.id)
+    await db.tasks.put({ ...snapshot, updatedAt: bump(current?.updatedAt ?? snapshot.updatedAt) })
     if (logId) await db.logs.delete(logId)
   })
   changed()
@@ -169,7 +170,7 @@ export async function setMaterialBought(refs: { taskId: string; materialId: stri
       const task = await db.tasks.get(ref.taskId)
       if (!task) continue
       const materials = task.materials.map((m) => (m.id === ref.materialId ? { ...m, bought } : m))
-      await db.tasks.put({ ...task, materials, updatedAt: Date.now() })
+      await db.tasks.put({ ...task, materials, updatedAt: bump(task.updatedAt) })
     }
   })
   changed()
@@ -222,6 +223,11 @@ export async function addPhoto(taskId: string, kind: PhotoKind, blob: Blob): Pro
 
 export async function deletePhoto(id: string) {
   await db.photos.delete(id)
+}
+
+/** Vuelve a guardar una foto borrada (para "Deshacer"). */
+export async function restorePhoto(photo: Photo) {
+  await db.photos.put(photo)
 }
 
 export async function wipeAll() {

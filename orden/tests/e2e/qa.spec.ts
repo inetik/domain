@@ -148,7 +148,10 @@ test('casa 3D: se dibuja y se puede apagar desde Ajustes (queda el plano 2D)', a
 
 test('casa: tocar un ambiente → "Agregar" precarga el ambiente y "Ver tareas" filtra', async ({ page }) => {
   await enter(page)
-  await page.getByTestId('house-2d').getByRole('button', { name: /^Cocina:/ }).click()
+  await page
+    .getByTestId('house-2d')
+    .getByRole('button', { name: /^Cocina:/ })
+    .click()
   await expect(page.getByText('3 pendientes · ~5 h')).toBeVisible()
   await page.getByRole('button', { name: 'Agregar', exact: true }).click()
   const sheet = page.getByRole('dialog', { name: 'Nuevo pendiente' })
@@ -278,7 +281,10 @@ test('pendientes: búsqueda, filtros por ambiente/tipo, estado vacío y agrupar 
   await page.getByRole('button', { name: 'Borrar búsqueda' }).click()
   await expect(summary(page)).toContainText('13 abiertas')
 
-  await page.getByRole('group', { name: 'Filtrar por ambiente' }).getByRole('button', { name: /^Taller/ }).click()
+  await page
+    .getByRole('group', { name: 'Filtrar por ambiente' })
+    .getByRole('button', { name: /^Taller/ })
+    .click()
   await page.getByRole('group', { name: 'Filtrar por tipo' }).getByRole('button', { name: 'Electricidad' }).click()
   await expect(page.getByText('Nada con ese filtro')).toBeVisible()
   await page.getByRole('button', { name: 'Agregar acá' }).click()
@@ -666,12 +672,12 @@ test('ajustes: "Borrar todo" pide confirmación y vuelve a los 13 pendientes', a
   await expect(summary(page)).toContainText('12 abiertas')
 
   await page.goto('./#/ajustes')
-  await page.getByRole('button', { name: 'Borrar todo y empezar de cero' }).click()
+  await page.getByRole('button', { name: 'Borrar todo y volver al inicio' }).click()
   await page.getByRole('button', { name: 'Cancelar' }).click()
-  await expect(page.getByRole('button', { name: 'Borrar todo y empezar de cero' })).toBeVisible()
-  await page.getByRole('button', { name: 'Borrar todo y empezar de cero' }).click()
+  await expect(page.getByRole('button', { name: 'Borrar todo y volver al inicio' })).toBeVisible()
+  await page.getByRole('button', { name: 'Borrar todo y volver al inicio' }).click()
   await page.getByRole('button', { name: 'Borrar todo', exact: true }).click()
-  await expect(toast(page, 'Empezaste de cero')).toBeVisible()
+  await expect(toast(page, 'volviste a los pendientes iniciales')).toBeVisible()
   await goPendientes(page)
   await expect(summary(page)).toContainText('13 abiertas')
   await expect(page.getByRole('button', { name: /^Hechas/ })).toHaveCount(0)
@@ -795,7 +801,22 @@ test.describe('regresiones', () => {
   test('una copia con una tarea sin listIds se importa y rompe la pantalla Listas', async ({ page }) => {
     await enter(page)
     await page.goto('./#/ajustes')
-    const old = { id: 'vieja-1', title: 'Tarea de una versión vieja', notes: '', room: 'living', category: 'otro', status: 'pendiente', priority: 0, minutes: 30, energy: 'media', people: [], subtasks: [], materials: [], createdAt: 1, updatedAt: Date.now() }
+    const old = {
+      id: 'vieja-1',
+      title: 'Tarea de una versión vieja',
+      notes: '',
+      room: 'living',
+      category: 'otro',
+      status: 'pendiente',
+      priority: 0,
+      minutes: 30,
+      energy: 'media',
+      people: [],
+      subtasks: [],
+      materials: [],
+      createdAt: 1,
+      updatedAt: Date.now(),
+    }
     const file = { app: 'orden', version: 1, exportedAt: Date.now(), tasks: [old], lists: [], logs: [], photos: [] }
     await page.getByTestId('backup-input').setInputFiles({ name: 'vieja.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(file)) })
     await page.getByRole('dialog', { name: 'Restaurar copia' }).getByRole('button', { name: 'Combinar con lo que tengo' }).click()

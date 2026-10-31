@@ -36,7 +36,11 @@ function subscribe(fn: () => void) {
 }
 
 export function useHash(): string {
-  return useSyncExternalStore(subscribe, () => window.location.hash, () => '')
+  return useSyncExternalStore(
+    subscribe,
+    () => window.location.hash,
+    () => '',
+  )
 }
 
 export function navigate(to: string) {

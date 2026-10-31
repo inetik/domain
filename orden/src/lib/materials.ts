@@ -2,7 +2,10 @@ import { normalize } from './id'
 
 /** Palabras clave → materiales que suelen hacer falta. */
 const RULES: { match: RegExp; materials: string[] }[] = [
-  { match: /\b(tele|tv|televisor)\b.*\b(colgar|soporte|montar)|\b(colgar|montar)\b.*\b(tele|tv|televisor)\b/, materials: ['Soporte para TV', 'Tarugos 8 mm', 'Mecha widia 8 mm', 'Nivel'] },
+  {
+    match: /\b(tele|tv|televisor)\b.*\b(colgar|soporte|montar)|\b(colgar|montar)\b.*\b(tele|tv|televisor)\b/,
+    materials: ['Soporte para TV', 'Tarugos 8 mm', 'Mecha widia 8 mm', 'Nivel'],
+  },
   { match: /cable ?canal/, materials: ['Cable canal', 'Cinta doble faz / tarugos'] },
   { match: /\b(toma|tomas|enchufe|enchufes)\b/, materials: ['Tomacorriente', 'Buscapolo'] },
   { match: /\b(toma|enchufe)\b.*\b(tele|tv)\b|\bconexion\b/, materials: ['Caja exterior', 'Cable 2,5 mm²'] },

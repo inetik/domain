@@ -69,8 +69,25 @@ export function CloudPanel() {
         </Step>
         <Step n={3} title="En Settings → API copiá la URL y la clave “anon public”">
           <div className="space-y-2">
-            <input className={input} value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://xxxx.supabase.co" aria-label="URL del proyecto" autoCapitalize="off" autoCorrect="off" inputMode="url" />
-            <input className={input} value={key} onChange={(e) => setKey(e.target.value)} placeholder="Clave anon public" aria-label="Clave anon" autoCapitalize="off" autoCorrect="off" />
+            <input
+              className={input}
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="https://xxxx.supabase.co"
+              aria-label="URL del proyecto"
+              autoCapitalize="off"
+              autoCorrect="off"
+              inputMode="url"
+            />
+            <input
+              className={input}
+              value={key}
+              onChange={(e) => setKey(e.target.value)}
+              placeholder="Clave anon public"
+              aria-label="Clave anon"
+              autoCapitalize="off"
+              autoCorrect="off"
+            />
             <Button variant="primary" block disabled={busy || !url || !key} onClick={() => run(() => saveCloudConfig(url, key))} icon={<Cloud className="size-4" />}>
               Conectar
             </Button>
@@ -85,8 +102,25 @@ export function CloudPanel() {
     return (
       <div className="space-y-3">
         <p className="text-callout text-ink-2">Nube conectada. Creá una cuenta (o entrá) para empezar a sincronizar.</p>
-        <input className={input} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@email.com" aria-label="Email" autoComplete="email" autoCapitalize="off" />
-        <input className={input} type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Contraseña (mín. 6)" aria-label="Contraseña" autoComplete="current-password" />
+        <input
+          className={input}
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="tu@email.com"
+          aria-label="Email"
+          autoComplete="email"
+          autoCapitalize="off"
+        />
+        <input
+          className={input}
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Contraseña (mín. 6)"
+          aria-label="Contraseña"
+          autoComplete="current-password"
+        />
         <div className="flex gap-2">
           <Button
             className="flex-1"
@@ -129,7 +163,9 @@ export function CloudPanel() {
         <Cloud className="size-5 text-success-ink" />
         <div className="min-w-0 flex-1">
           <p className="truncate text-callout font-semibold text-ink">{status.email}</p>
-          <p className="text-footnote text-ink-2">{status.lastSyncAt ? `Última sincronización: ${dayLabel(status.lastSyncAt).toLowerCase()} ${time(status.lastSyncAt)}` : 'Todavía sin sincronizar'}</p>
+          <p className="text-footnote text-ink-2">
+            {status.lastSyncAt ? `Última sincronización: ${dayLabel(status.lastSyncAt).toLowerCase()} ${time(status.lastSyncAt)}` : 'Todavía sin sincronizar'}
+          </p>
         </div>
       </div>
       <Button

@@ -1,21 +1,4 @@
-import {
-  Bath,
-  BedDouble,
-  CookingPot,
-  Hammer,
-  HandCoins,
-  House,
-  Package,
-  Ruler,
-  ShoppingCart,
-  Shapes,
-  Sofa,
-  Sparkles,
-  Wrench,
-  Zap,
-  Drill,
-  type LucideIcon,
-} from 'lucide-react'
+import { Bath, BedDouble, CookingPot, Hammer, HandCoins, House, Package, Ruler, ShoppingCart, Shapes, Sofa, Sparkles, Wrench, Zap, Drill, type LucideIcon } from 'lucide-react'
 import type { CategoryId, Energy, RoomId } from '../db/types'
 
 export interface RoomMeta {

@@ -44,6 +44,8 @@ interface UI {
   setTheme: (t: ThemePref) => void
   scene3d: boolean
   setScene3d: (on: boolean) => void
+  installGuide: boolean
+  setInstallGuide: (open: boolean) => void
 }
 
 const UIContext = createContext<UI | null>(null)
@@ -70,6 +72,7 @@ export function UIProvider({ children }: { children: ReactNode }) {
   const [taskId, setTaskId] = useState<string | null>(null)
   const [quickAdd, setQuickAdd] = useState<QuickAddPrefill | null>(null)
   const [suggestOpen, setSuggestOpen] = useState(false)
+  const [installGuide, setInstallGuide] = useState(false)
   const [toast, setToast] = useState<ToastData | null>(null)
   const [celebration, setCelebration] = useState<Celebration | null>(null)
   const celebrate = useCallback((room: RoomId | 'casa') => setCelebration({ room, at: Date.now() }), [])
@@ -139,8 +142,10 @@ export function UIProvider({ children }: { children: ReactNode }) {
       setTheme,
       scene3d,
       setScene3d,
+      installGuide,
+      setInstallGuide,
     }),
-    [celebration, celebrate, clearCelebration, taskId, quickAdd, suggestOpen, toast, showToast, dismissToast, theme, resolvedTheme, setTheme, scene3d, setScene3d],
+    [celebration, celebrate, clearCelebration, taskId, quickAdd, suggestOpen, toast, showToast, dismissToast, theme, resolvedTheme, setTheme, scene3d, setScene3d, installGuide],
   )
 
   return <UIContext.Provider value={value}>{children}</UIContext.Provider>

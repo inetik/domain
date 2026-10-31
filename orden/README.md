@@ -4,12 +4,14 @@
 
 ## Cómo tenerla en el iPhone
 
-1. **Publicarla (una sola vez)** — en GitHub, repo `domain`:
+1. **Publicarla (una sola vez)** — en GitHub, repo `inetik/domain`:
+   - **Activar Actions:** como el repo es un fork de `is-a-dev/register`, GitHub trae las Actions apagadas. Entrá a la pestaña *Actions* y tocá **“I understand my workflows, go ahead and enable them”**.
+   - **Apagar los workflows heredados** de is-a.dev (no sirven en tu fork y algunos corren solos): en *Actions*, entrá a cada uno — *Pull Request Labeler* (corre cada 10 minutos), *StaleBOT*, *Publish*, *Raw API* y *Validation* — y en el menú **⋯ → Disable workflow**. Dejá prendido solo **“Orden · GitHub Pages”**.
    - *Settings → Pages → Build and deployment → Source:* **GitHub Actions**.
    - *Settings → Environments → github-pages → Deployment branches:* agregá `claude/home-tasks-web-app-pi7hsu` (o mergeá a `main`).
    - *Actions → “Orden · GitHub Pages” → Run workflow* (o hacé cualquier push en `orden/`).
 2. **Abrirla en Safari:** `https://inetik.github.io/domain/`
-3. **Instalarla:** Compartir → **Agregar a pantalla de inicio** → Agregar.
+3. **Instalarla enseguida:** Compartir → **Agregar a pantalla de inicio** → Agregar. Ojo: iOS guarda por separado los datos de Safari y los de la app instalada, así que cargá tus cosas **desde la app instalada** (si ya cargaste algo en Safari: Ajustes → Guardar copia, y después Restaurar desde la app).
 
 ## Qué tiene
 
@@ -28,9 +30,10 @@
 
 ## Tus datos
 
-- Viven en el teléfono (IndexedDB). Instalada en la pantalla de inicio, iOS no los borra.
+- Viven en el teléfono (IndexedDB). Instalada en la pantalla de inicio, iOS no los borra (en Safari sin instalar, sí puede borrarlos tras una semana sin uso).
+- Todo cambio queda en el **Registro**; una tarea borrada se puede restaurar tocándola ahí.
 - **Copias de seguridad:** Ajustes → *Guardar copia* (elegí “Guardar en Archivos” / iCloud Drive). *Restaurar* combina o reemplaza.
-- **Nube opcional (Supabase, gratis):** Ajustes → Nube. Copiás el SQL que te da la app, pegás URL + clave y creás una cuenta. Sincroniza entre dispositivos con “última escritura gana”. Las fotos quedan en el teléfono.
+- **Nube opcional (Supabase, gratis):** Ajustes → Nube. Copiás el SQL que te da la app, pegás URL + clave (la app prueba la conexión) y creás una cuenta. Sincroniza entre dispositivos con “última escritura gana”; los 13 pendientes iniciales no se duplican entre teléfonos. Las fotos quedan en el teléfono.
 
 ## Para desarrollar
 

@@ -14,7 +14,6 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'script-defer',
-      includeAssets: ['favicon.svg', 'icons/apple-touch-icon.png'],
       manifest: {
         id: base,
         name: 'Orden',

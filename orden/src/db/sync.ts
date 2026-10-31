@@ -31,7 +31,8 @@ alter table public.orden_records enable row level security;
 drop policy if exists "orden_own_rows" on public.orden_records;
 create policy "orden_own_rows" on public.orden_records for all to authenticated
   using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
-create or replace function public.orden_touch() returns trigger language plpgsql as $$
+grant select, insert, update on public.orden_records to authenticated;
+create or replace function public.orden_touch() returns trigger language plpgsql set search_path = '' as $$
 begin
   if tg_op = 'UPDATE' and new.updated_at < old.updated_at then return null; end if;
   new.synced_at := clock_timestamp();
@@ -129,6 +130,8 @@ export async function signIn(email: string, password: string) {
 
 export async function signOut() {
   await (await getClient())?.auth.signOut()
+  // Si después entra otra cuenta, que sincronice todo desde cero
+  await db.meta.bulkDelete(['cloudCursor', 'cloudPushedAt', 'lastSyncAt'])
 }
 
 function chunks<T>(arr: T[], size: number): T[][] {
@@ -159,19 +162,29 @@ async function doSync(): Promise<{ pulled: number; pushed: number }> {
 
   // 1) Bajar lo nuevo de la nube
   let pulled = 0
+  let firstPage = true
   for (;;) {
-    const { data, error } = await c
-      .from('orden_records')
-      .select('kind,id,data,updated_at,synced_at')
-      .gt('synced_at', cursor)
-      .order('synced_at', { ascending: true })
-      .limit(1000)
+    // En la primera página, un poco de solapamiento por si una fila se confirmó con un sello
+    // apenas anterior al cursor (repetirla no hace daño: la combinación ignora lo que no es más
+    // nuevo). Las páginas siguientes avanzan estrictamente para no quedar en un bucle.
+    const since = firstPage ? new Date(Date.parse(cursor) - 2 * 60 * 1000).toISOString() : cursor
+    firstPage = false
+    const { data, error } = await c.from('orden_records').select('kind,id,data,updated_at,synced_at').gt('synced_at', since).order('synced_at', { ascending: true }).limit(1000)
     if (error) throw new Error(humanError(error.message))
     const rows = (data ?? []) as Row[]
     if (!rows.length) break
-    const tasks = normalizeAll(rows.filter((r) => r.kind === 'task').map((r) => r.data), (t) => normalizeTask(t))
-    const lists = normalizeAll(rows.filter((r) => r.kind === 'list').map((r) => r.data), (l) => normalizeList(l))
-    const logs = normalizeAll(rows.filter((r) => r.kind === 'log').map((r) => r.data), normalizeLog)
+    const tasks = normalizeAll(
+      rows.filter((r) => r.kind === 'task').map((r) => r.data),
+      (t) => normalizeTask(t),
+    )
+    const lists = normalizeAll(
+      rows.filter((r) => r.kind === 'list').map((r) => r.data),
+      (l) => normalizeList(l),
+    )
+    const logs = normalizeAll(
+      rows.filter((r) => r.kind === 'log').map((r) => r.data),
+      normalizeLog,
+    )
     await db.transaction('rw', db.tasks, db.lists, db.logs, async () => {
       const t = newerThanLocal(await db.tasks.bulkGet(tasks.map((x) => x.id)).then((a) => a.filter(Boolean) as Task[]), tasks)
       const l = newerThanLocal(await db.lists.bulkGet(lists.map((x) => x.id)).then((a) => a.filter(Boolean) as TaskList[]), lists)

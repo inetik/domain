@@ -34,7 +34,21 @@ function skyColor(theme: 'light' | 'dark', hour = new Date().getHours()): string
   return theme === 'dark' ? '#aeb8ff' : '#e6e9ff'
 }
 
-function Orb({ position, color, index, animate, glow, urgent }: { position: [number, number, number]; color: string; index: number; animate: boolean; glow: number; urgent: boolean }) {
+function Orb({
+  position,
+  color,
+  index,
+  animate,
+  glow,
+  urgent,
+}: {
+  position: [number, number, number]
+  color: string
+  index: number
+  animate: boolean
+  glow: number
+  urgent: boolean
+}) {
   const ref = useRef<THREE.Mesh>(null)
   useFrame(({ clock }) => {
     if (!ref.current || !animate) return
@@ -165,7 +179,21 @@ function LabelProjector({ anchors, labels }: { anchors: MutableRefObject<Map<Roo
   return null
 }
 
-function RoomLabel({ id, count, selected, dimmed, palette, register }: { id: RoomId; count: number; selected: boolean; dimmed: boolean; palette: Palette; register: (id: RoomId, el: HTMLDivElement | null) => void }) {
+function RoomLabel({
+  id,
+  count,
+  selected,
+  dimmed,
+  palette,
+  register,
+}: {
+  id: RoomId
+  count: number
+  selected: boolean
+  dimmed: boolean
+  palette: Palette
+  register: (id: RoomId, el: HTMLDivElement | null) => void
+}) {
   const color = ROOM_HEX[id]
   // "Toda la casa" solo se muestra si tiene algo (si no, contradice al total)
   if (id === 'general' && count === 0 && !selected) return null

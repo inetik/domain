@@ -12,7 +12,16 @@ const STEPS = [
 
 export function InstallGuide({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
-    <Sheet open={open} onClose={onClose} label="Instalar en el iPhone" footer={<Button variant="primary" size="lg" block onClick={onClose}>Entendido</Button>}>
+    <Sheet
+      open={open}
+      onClose={onClose}
+      label="Instalar en el iPhone"
+      footer={
+        <Button variant="primary" size="lg" block onClick={onClose}>
+          Entendido
+        </Button>
+      }
+    >
       <h2 className="mt-1 font-serif text-[30px] leading-none text-ink">
         Instalala en tu <span className="italic text-accent-text">iPhone</span>
       </h2>
@@ -44,7 +53,11 @@ export function InstallGuide({ open, onClose }: { open: boolean; onClose: () => 
           )
         })}
       </ol>
-      <p className="mt-5 text-footnote text-ink-3">Tus datos se guardan en el teléfono. Instalada, iOS no los borra aunque no la uses por un tiempo.</p>
+      <div className="mt-5 rounded-2xl border border-warn/30 bg-warn/10 p-4 text-footnote text-ink">
+        <strong>Importante:</strong> lo que cargues en Safari no pasa a la app instalada (iOS las guarda por separado), y Safari puede borrarlo si no lo usás por una semana.
+        Instalala antes de empezar, o guardá una copia en Ajustes y restaurala desde la app.
+      </div>
+      <p className="mt-3 text-footnote text-ink-3">Instalada, iOS conserva tus datos aunque no la abras por un tiempo.</p>
     </Sheet>
   )
 }

@@ -35,12 +35,7 @@ function base64ToBlob(data: string, type: string): Blob {
 }
 
 export async function exportBackup(): Promise<BackupFile> {
-  const [tasks, lists, logs, photos] = await Promise.all([
-    db.tasks.toArray(),
-    db.lists.toArray(),
-    db.logs.toArray(),
-    db.photos.toArray(),
-  ])
+  const [tasks, lists, logs, photos] = await Promise.all([db.tasks.toArray(), db.lists.toArray(), db.logs.toArray(), db.photos.toArray()])
   const dumped: PhotoDump[] = []
   for (const { blob, ...rest } of photos) dumped.push({ ...rest, type: blob.type || 'image/jpeg', data: await blobToBase64(blob) })
   return { app: 'orden', version: 1, exportedAt: Date.now(), tasks, lists, logs, photos: dumped }

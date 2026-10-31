@@ -24,8 +24,22 @@ export function smartLists(tasks: Task[], now = Date.now()): SmartList[] {
   const lists: SmartList[] = [
     { id: 'smart:rapidas', name: 'Rápidas', description: '30 minutos o menos', icon: Timer, color: 'var(--accent-stroke)', match: (t) => t.minutes <= 30 },
     { id: 'smart:prioridad', name: 'Prioritarias', description: 'Importantes y urgentes', icon: Flame, color: 'var(--danger-ink)', match: (t) => t.priority > 0 },
-    { id: 'smart:electricidad', name: 'Electricidad', description: 'Con la térmica cortada', icon: Zap, color: 'var(--room-taller-ink)', match: (t) => t.category === 'electricidad' },
-    { id: 'smart:finde', name: 'Este finde', description: 'Con fecha sábado o domingo', icon: CalendarDays, color: 'var(--room-living-ink)', match: (t) => !!t.due && t.due >= sat && t.due <= sun },
+    {
+      id: 'smart:electricidad',
+      name: 'Electricidad',
+      description: 'Con la térmica cortada',
+      icon: Zap,
+      color: 'var(--room-taller-ink)',
+      match: (t) => t.category === 'electricidad',
+    },
+    {
+      id: 'smart:finde',
+      name: 'Este finde',
+      description: 'Con fecha sábado o domingo',
+      icon: CalendarDays,
+      color: 'var(--room-living-ink)',
+      match: (t) => !!t.due && t.due >= sat && t.due <= sun,
+    },
     { id: 'smart:en-curso', name: 'En curso', description: 'Lo que ya arrancaste', icon: Hammer, color: 'var(--room-cocina-ink)', match: (t) => t.status === 'en_curso' },
     {
       id: 'smart:listas',

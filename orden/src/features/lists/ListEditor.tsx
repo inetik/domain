@@ -70,7 +70,15 @@ function ListForm({ list, onDone }: { list?: TaskList; onDone: () => void }) {
       <p className="mt-5 mb-2 text-caption font-semibold tracking-wide text-ink-3 uppercase">Color</p>
       <div className="grid grid-cols-4 justify-items-center gap-3">
         {LIST_COLORS.map((c) => (
-          <button key={c} type="button" onClick={() => setColor(c)} aria-label={`Color ${c}`} aria-pressed={color === c} className="flex size-12 items-center justify-center rounded-full" style={{ background: c }}>
+          <button
+            key={c}
+            type="button"
+            onClick={() => setColor(c)}
+            aria-label={`Color ${c}`}
+            aria-pressed={color === c}
+            className="flex size-12 items-center justify-center rounded-full"
+            style={{ background: c }}
+          >
             {color === c && <Check className="size-5 text-[#0b0b10]" strokeWidth={3} />}
           </button>
         ))}

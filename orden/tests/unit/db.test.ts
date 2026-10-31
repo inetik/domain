@@ -38,7 +38,11 @@ describe('repo', () => {
     const t = await addTask({ title: 'Editar' })
     await updateTask(t.id, { notes: 'a' })
     await updateTask(t.id, { notes: 'ab' })
-    const edits = await db.logs.where('taskId').equals(t.id).filter((l) => l.type === 'editada').count()
+    const edits = await db.logs
+      .where('taskId')
+      .equals(t.id)
+      .filter((l) => l.type === 'editada')
+      .count()
     expect(edits).toBe(1)
   })
 
@@ -47,7 +51,13 @@ describe('repo', () => {
     const logId = await completeTask(t.id)
     await revertTask(t, logId)
     expect((await db.tasks.get(t.id))?.status).toBe('pendiente')
-    expect(await db.logs.where('taskId').equals(t.id).filter((l) => l.type === 'hecha').count()).toBe(0)
+    expect(
+      await db.logs
+        .where('taskId')
+        .equals(t.id)
+        .filter((l) => l.type === 'hecha')
+        .count(),
+    ).toBe(0)
   })
 
   it('borrar es suave (se puede recuperar)', async () => {
@@ -59,7 +69,13 @@ describe('repo', () => {
   it('marca materiales comprados en varias tareas', async () => {
     const a = await addTask({ title: 'A', materials: [{ id: 'm1', name: 'Nivel', bought: false }] })
     const b = await addTask({ title: 'B', materials: [{ id: 'm2', name: 'nivel', bought: false }] })
-    await setMaterialBought([{ taskId: a.id, materialId: 'm1' }, { taskId: b.id, materialId: 'm2' }], true)
+    await setMaterialBought(
+      [
+        { taskId: a.id, materialId: 'm1' },
+        { taskId: b.id, materialId: 'm2' },
+      ],
+      true,
+    )
     expect((await db.tasks.get(a.id))?.materials[0].bought).toBe(true)
     expect((await db.tasks.get(b.id))?.materials[0].bought).toBe(true)
   })
@@ -78,6 +94,17 @@ describe('backup', () => {
     expect(await db.tasks.count()).toBe(14)
     const photo = await db.photos.get('p1')
     expect(new Uint8Array(await photo!.blob.arrayBuffer())).toEqual(new Uint8Array([1, 2, 3, 250]))
+  })
+
+  it('la semilla de otro dispositivo no duplica los pendientes', async () => {
+    await seedIfNeeded(1000)
+    const otherPhone = await exportBackup()
+    await wipeAll()
+    await seedIfNeeded(5000)
+    await importBackup(otherPhone, 'merge')
+    expect(await db.tasks.count()).toBe(13)
+    expect(await db.lists.count()).toBe(1)
+    expect(await db.logs.count()).toBe(13)
   })
 
   it('combinar respeta la versión más nueva', async () => {

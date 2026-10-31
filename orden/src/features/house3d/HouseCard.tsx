@@ -115,7 +115,11 @@ export function HouseCard() {
               <div className="min-w-0 flex-1">
                 <p className="text-headline font-semibold text-ink">{ROOMS[selected].label}</p>
                 <p className="text-footnote text-ink-2">
-                  {summary.open ? `${plural(summary.open, 'pendiente', 'pendientes')} · ~${formatMinutes(summary.minutes)}` : summary.done ? '¡Todo resuelto acá!' : 'Sin pendientes'}
+                  {summary.open
+                    ? `${plural(summary.open, 'pendiente', 'pendientes')} · ~${formatMinutes(summary.minutes)}`
+                    : summary.done
+                      ? '¡Todo resuelto acá!'
+                      : 'Sin pendientes'}
                 </p>
               </div>
               <IconButton label="Cerrar" tone="ghost" onClick={() => select(null)}>

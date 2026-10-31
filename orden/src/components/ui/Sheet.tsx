@@ -131,10 +131,7 @@ function SheetPanel({ onClose, label, children, header, footer, tall, className 
         dragElastic={{ top: 0.02, bottom: 0.9 }}
         onDragEnd={onDragEnd}
       >
-        <div
-          className="shrink-0 touch-none cursor-grab px-5 pt-2.5 active:cursor-grabbing"
-          onPointerDown={(e) => controls.start(e)}
-        >
+        <div className="shrink-0 touch-none cursor-grab px-5 pt-2.5 active:cursor-grabbing" onPointerDown={(e) => controls.start(e)}>
           <div className="mx-auto mb-2 h-1.5 w-10 rounded-full bg-line-strong" aria-hidden />
           {header}
         </div>

@@ -7,6 +7,7 @@ import { navigate } from '../../app/router'
 import { useUI } from '../../app/ui'
 import { AnimatedNumber } from '../../components/ui/AnimatedNumber'
 import { EmptyState, SectionTitle, Skeleton } from '../../components/ui/Feedback'
+import { restoreTask } from '../../db/repo'
 import { db } from '../../db/schema'
 import type { LogEntry, Photo } from '../../db/types'
 import { rise, stagger } from '../../design/motion'
@@ -154,7 +155,11 @@ function Heatmap({ completions }: { completions: number[] }) {
       <div className="mt-3 flex items-center justify-end gap-1.5 text-caption text-ink-3">
         Menos
         {[0, 0.35, 0.65, 1].map((v) => (
-          <span key={v} className="size-2.5 rounded-[3px]" style={{ background: v ? `color-mix(in oklab, var(--accent-stroke) ${30 + v * 70}%, var(--surface-2))` : 'var(--surface-3)' }} />
+          <span
+            key={v}
+            className="size-2.5 rounded-[3px]"
+            style={{ background: v ? `color-mix(in oklab, var(--accent-stroke) ${30 + v * 70}%, var(--surface-2))` : 'var(--surface-3)' }}
+          />
         ))}
         Más
       </div>
@@ -187,7 +192,23 @@ function collapse(entries: LogEntry[]): TimelineRow[] {
 }
 
 function Timeline({ logs }: { logs: LogEntry[] }) {
-  const { openTask } = useUI()
+  const { openTask, showToast } = useUI()
+  const open = async (taskId: string) => {
+    const task = await db.tasks.get(taskId)
+    if (!task) return showToast({ message: 'Esa tarea ya no existe', tone: 'warn' })
+    if (!task.deletedAt) return openTask(taskId)
+    showToast({
+      message: `“${task.title}” está borrada`,
+      tone: 'warn',
+      action: {
+        label: 'Restaurar',
+        onClick: async () => {
+          await restoreTask(taskId)
+          openTask(taskId)
+        },
+      },
+    })
+  }
   const groups = useMemo(() => {
     const map = new Map<number, LogEntry[]>()
     for (const l of logs) {
@@ -213,7 +234,10 @@ function Timeline({ logs }: { logs: LogEntry[] }) {
                     className="flex min-h-14 w-full items-center gap-3 px-4 py-2.5 text-left active:bg-surface-2"
                     style={{ borderTop: i ? '1px solid var(--border)' : undefined }}
                   >
-                    <span className="flex size-8 shrink-0 items-center justify-center rounded-xl" style={{ background: `color-mix(in oklab, ${LOG_META.creada.color} 16%, transparent)`, color: LOG_META.creada.color }}>
+                    <span
+                      className="flex size-8 shrink-0 items-center justify-center rounded-xl"
+                      style={{ background: `color-mix(in oklab, ${LOG_META.creada.color} 16%, transparent)`, color: LOG_META.creada.color }}
+                    >
                       <ListPlus className="size-4" />
                     </span>
                     <span className="min-w-0 flex-1">
@@ -231,11 +255,14 @@ function Timeline({ logs }: { logs: LogEntry[] }) {
                 <button
                   key={l.id}
                   type="button"
-                  onClick={() => openTask(l.taskId)}
+                  onClick={() => open(l.taskId)}
                   className="flex min-h-14 w-full items-center gap-3 px-4 py-2.5 text-left active:bg-surface-2"
                   style={{ borderTop: i ? '1px solid var(--border)' : undefined }}
                 >
-                  <span className="flex size-8 shrink-0 items-center justify-center rounded-xl" style={{ background: `color-mix(in oklab, ${meta.color} 16%, transparent)`, color: meta.color }}>
+                  <span
+                    className="flex size-8 shrink-0 items-center justify-center rounded-xl"
+                    style={{ background: `color-mix(in oklab, ${meta.color} 16%, transparent)`, color: meta.color }}
+                  >
                     <Icon className="size-4" />
                   </span>
                   <span className="min-w-0 flex-1">

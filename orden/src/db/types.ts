@@ -1,17 +1,7 @@
 export const ROOM_IDS = ['living', 'cocina', 'pieza', 'bano', 'taller', 'general'] as const
 export type RoomId = (typeof ROOM_IDS)[number]
 
-export const CATEGORY_IDS = [
-  'electricidad',
-  'montaje',
-  'arreglo',
-  'limpieza',
-  'orden',
-  'venta',
-  'carpinteria',
-  'compras',
-  'otro',
-] as const
+export const CATEGORY_IDS = ['electricidad', 'montaje', 'arreglo', 'limpieza', 'orden', 'venta', 'carpinteria', 'compras', 'otro'] as const
 export type CategoryId = (typeof CATEGORY_IDS)[number]
 
 export type Status = 'pendiente' | 'en_curso' | 'hecha'
@@ -65,16 +55,7 @@ export interface TaskList {
   deletedAt?: number
 }
 
-export type LogType =
-  | 'creada'
-  | 'editada'
-  | 'iniciada'
-  | 'hecha'
-  | 'reabierta'
-  | 'pospuesta'
-  | 'borrada'
-  | 'restaurada'
-  | 'foto'
+export type LogType = 'creada' | 'editada' | 'iniciada' | 'hecha' | 'reabierta' | 'pospuesta' | 'borrada' | 'restaurada' | 'foto'
 
 export interface LogEntry {
   id: string

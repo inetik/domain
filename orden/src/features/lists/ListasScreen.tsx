@@ -103,7 +103,10 @@ export function ListasScreen() {
                 className="flex min-h-16 w-full items-center gap-3 px-4 py-3 text-left active:bg-surface-2"
                 style={{ borderTop: i ? '1px solid var(--border)' : undefined }}
               >
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl" style={{ background: `color-mix(in oklab, ${s.color} 18%, transparent)`, color: s.color }}>
+                <span
+                  className="flex size-10 shrink-0 items-center justify-center rounded-xl"
+                  style={{ background: `color-mix(in oklab, ${s.color} 18%, transparent)`, color: s.color }}
+                >
                   <Icon className="size-5" />
                 </span>
                 <span className="min-w-0 flex-1">

@@ -34,13 +34,20 @@ export function RoomCelebration() {
           data-testid="celebration"
         >
           <div className="absolute inset-0" style={{ background: `radial-gradient(60% 45% at 50% 50%, color-mix(in oklab, ${color} 35%, transparent), var(--scrim))` }} />
-          <motion.div className="relative flex flex-col items-center text-center" initial={{ scale: 0.6, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0 }} transition={spring.bouncy}>
+          <motion.div
+            className="relative flex flex-col items-center text-center"
+            initial={{ scale: 0.6, y: 20 }}
+            animate={{ scale: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            transition={spring.bouncy}
+          >
             <span className="relative flex size-24 items-center justify-center rounded-[32px] shadow-2" style={{ background: color }}>
               {Icon ? <Icon className="size-11 text-[#0b0b10]" /> : <span className="text-[44px]">🏡</span>}
               <Burst count={24} radius={110} />
             </span>
             <p className="mt-6 font-serif text-[40px] leading-none text-ink">
-              ¡{title}<span className="italic text-accent-text">!</span>
+              ¡{title}
+              <span className="italic text-accent-text">!</span>
             </p>
             <p className="mt-2 text-callout text-ink-2">{celebration.room === 'casa' ? 'No queda nada pendiente. Disfrutala.' : 'No queda nada pendiente acá.'}</p>
           </motion.div>

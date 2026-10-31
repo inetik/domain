@@ -67,7 +67,13 @@ function SuggestFlow() {
 
       <AnimatePresence mode="wait" initial={false}>
         {phase === 'ask' ? (
-          <motion.div key="ask" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20, transition: { duration: 0.12 } }} transition={spring.gentle}>
+          <motion.div
+            key="ask"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20, transition: { duration: 0.12 } }}
+            transition={spring.gentle}
+          >
             <p className="mt-6 mb-3 text-callout text-ink-2">¿Cuánto tiempo tenés?</p>
             <div className="grid grid-cols-4 gap-2">
               {TIMES.map((t) => (
@@ -113,7 +119,13 @@ function SuggestFlow() {
             </Button>
           </motion.div>
         ) : (
-          <motion.div key="pick" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20, transition: { duration: 0.12 } }} transition={spring.gentle}>
+          <motion.div
+            key="pick"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20, transition: { duration: 0.12 } }}
+            transition={spring.gentle}
+          >
             {current ? (
               <>
                 <div className="mt-6" style={{ perspective: 1200 }}>

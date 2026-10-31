@@ -102,8 +102,21 @@ export function FerreteriaScreen() {
 
 function Row({ item, onToggle, onOpenTask }: { item: ShoppingItem; onToggle: () => void; onOpenTask: (id: string) => void }) {
   return (
-    <motion.div layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, height: 0 }} transition={spring.gentle} className="flex items-start gap-3 border-b border-line px-4 py-3 last:border-0">
-      <button type="button" onClick={onToggle} aria-pressed={item.bought} aria-label={`${item.bought ? 'Desmarcar' : 'Marcar comprado'}: ${item.name}`} className="-m-2 flex size-11 shrink-0 items-center justify-center">
+    <motion.div
+      layout
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0, height: 0 }}
+      transition={spring.gentle}
+      className="flex items-start gap-3 border-b border-line px-4 py-3 last:border-0"
+    >
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-pressed={item.bought}
+        aria-label={`${item.bought ? 'Desmarcar' : 'Marcar comprado'}: ${item.name}`}
+        className="-m-2 flex size-11 shrink-0 items-center justify-center"
+      >
         <motion.span
           className={cn('flex size-6 items-center justify-center rounded-lg border-2', item.bought ? 'border-success bg-success' : 'border-line-strong')}
           whileTap={{ scale: 0.8 }}
@@ -118,7 +131,12 @@ function Row({ item, onToggle, onOpenTask }: { item: ShoppingItem; onToggle: () 
         </p>
         <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
           {item.refs.map((r) => (
-            <button key={r.materialId} type="button" onClick={() => onOpenTask(r.taskId)} className="inline-flex min-h-9 items-start gap-1.5 py-2 text-left text-caption text-ink-3">
+            <button
+              key={r.materialId}
+              type="button"
+              onClick={() => onOpenTask(r.taskId)}
+              className="inline-flex min-h-9 items-start gap-1.5 py-2 text-left text-caption text-ink-3"
+            >
               <span className="mt-[5px] size-1.5 shrink-0 rounded-full" style={{ background: ROOMS[r.room].color }} />
               {r.taskTitle}
             </button>

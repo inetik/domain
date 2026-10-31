@@ -73,7 +73,12 @@ export function PendientesScreen({ initialRoom }: { initialRoom?: string }) {
           className="h-12 w-full rounded-2xl border border-line bg-surface-1 pr-11 pl-11 text-ink outline-none placeholder:text-ink-3 focus:border-accent-stroke"
         />
         {query && (
-          <button type="button" aria-label="Borrar búsqueda" onClick={() => setQuery('')} className="absolute top-1/2 right-1 flex size-10 -translate-y-1/2 items-center justify-center text-ink-3">
+          <button
+            type="button"
+            aria-label="Borrar búsqueda"
+            onClick={() => setQuery('')}
+            className="absolute top-1/2 right-1 flex size-10 -translate-y-1/2 items-center justify-center text-ink-3"
+          >
             <X className="size-4" />
           </button>
         )}
@@ -124,12 +129,7 @@ export function PendientesScreen({ initialRoom }: { initialRoom?: string }) {
 
       <AnimatePresence>
         {hint && open.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
-          >
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
             <div className="mt-4 flex items-center gap-3 rounded-2xl border border-dashed border-line-strong p-3 text-footnote text-ink-2">
               <span className="flex w-10 shrink-0 justify-center">
                 <motion.span animate={{ x: [0, 12, 0, -12, 0] }} transition={{ duration: 2.4, repeat: 3 }}>
@@ -155,7 +155,16 @@ export function PendientesScreen({ initialRoom }: { initialRoom?: string }) {
 
       <div className="mt-6" data-testid="pending-list">
         {!ready ? null : tasks.length === 0 ? (
-          <EmptyState icon={ListChecks} title="Todavía no hay pendientes" body="Cargá lo primero que se te ocurra. Después lo ordenamos." action={<Button variant="primary" icon={<Plus className="size-4" />} onClick={() => openQuickAdd()}>Agregar pendiente</Button>} />
+          <EmptyState
+            icon={ListChecks}
+            title="Todavía no hay pendientes"
+            body="Cargá lo primero que se te ocurra. Después lo ordenamos."
+            action={
+              <Button variant="primary" icon={<Plus className="size-4" />} onClick={() => openQuickAdd()}>
+                Agregar pendiente
+              </Button>
+            }
+          />
         ) : open.length === 0 && filtering ? (
           <EmptyState
             icon={SearchX}
@@ -232,17 +241,29 @@ function group(list: Task[], by: GroupBy): [string, string, string | undefined, 
     return ROOM_ORDER.map((r): [string, string, string | undefined, Task[]] => [r, ROOMS[r].label, ROOMS[r].color, list.filter((t) => t.room === r)]).filter((g) => g[3].length)
   }
   if (by === 'tipo') {
-    return CATEGORY_IDS.map((c): [string, string, string | undefined, Task[]] => [c, CATEGORIES[c].label, undefined, list.filter((t) => t.category === c)]).filter((g) => g[3].length)
+    return CATEGORY_IDS.map((c): [string, string, string | undefined, Task[]] => [c, CATEGORIES[c].label, undefined, list.filter((t) => t.category === c)]).filter(
+      (g) => g[3].length,
+    )
   }
   return ([2, 1, 0] as const)
-    .map((p): [string, string, string | undefined, Task[]] => [String(p), PRIORITY_LABEL[p], p === 2 ? 'var(--danger)' : p === 1 ? 'var(--warn)' : 'var(--text-3)', list.filter((t) => t.priority === p)])
+    .map((p): [string, string, string | undefined, Task[]] => [
+      String(p),
+      PRIORITY_LABEL[p],
+      p === 2 ? 'var(--danger)' : p === 1 ? 'var(--warn)' : 'var(--text-3)',
+      list.filter((t) => t.priority === p),
+    ])
     .filter((g) => g[3].length)
 }
 
 function Collapsible({ title, open, onToggle, children }: { title: string; open: boolean; onToggle: () => void; children: ReactNode }) {
   return (
     <section className="mb-4">
-      <button type="button" onClick={onToggle} aria-expanded={open} className="flex h-12 w-full items-center justify-between rounded-2xl px-1 text-footnote font-semibold text-ink-2">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        className="flex h-12 w-full items-center justify-between rounded-2xl px-1 text-footnote font-semibold text-ink-2"
+      >
         {title}
         <motion.span animate={{ rotate: open ? 180 : 0 }}>
           <ChevronDown className="size-4" />
