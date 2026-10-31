@@ -23,4 +23,5 @@ export const BOUNDS = { minX: -4, maxX: 4, minZ: -3.1, maxZ: 4.2 }
 export interface RoomCounts {
   open: number
   done: number
+  urgent: number
 }

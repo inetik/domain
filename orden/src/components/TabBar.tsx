@@ -39,9 +39,15 @@ export function TabBar({ active, badge }: { active: Tab | null; badge?: number }
         <span className="relative">
           <Icon className="size-[22px]" strokeWidth={isActive ? 2.2 : 1.8} />
           {t.id === 'pendientes' && !!badge && (
-            <span className="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-accent-ink tabular">
+            <motion.span
+              key={badge}
+              initial={{ scale: 1.5 }}
+              animate={{ scale: 1 }}
+              transition={spring.bouncy}
+              className="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-bold text-accent-ink tabular"
+            >
               {badge}
-            </span>
+            </motion.span>
           )}
         </span>
         <span className="relative">{t.label}</span>

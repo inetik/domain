@@ -1,5 +1,5 @@
 import { AnimatePresence, motion, useDragControls, type PanInfo } from 'motion/react'
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { spring } from '../../design/motion'
 import { cn } from '../../lib/cn'
@@ -34,8 +34,30 @@ export function Sheet(props: SheetProps) {
   return createPortal(<AnimatePresence>{props.open && <SheetPanel {...props} />}</AnimatePresence>, document.body)
 }
 
+/**
+ * En iPhone el teclado tapa la parte de abajo de la pantalla sin achicar el layout:
+ * medimos el visualViewport para subir la hoja y que los botones queden a la vista.
+ */
+function useKeyboardInset(): number {
+  const [inset, setInset] = useState(0)
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+    const update = () => setInset(Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)))
+    update()
+    vv.addEventListener('resize', update)
+    vv.addEventListener('scroll', update)
+    return () => {
+      vv.removeEventListener('resize', update)
+      vv.removeEventListener('scroll', update)
+    }
+  }, [])
+  return inset
+}
+
 function SheetPanel({ onClose, label, children, header, footer, tall, className }: SheetProps) {
   const controls = useDragControls()
+  const keyboard = useKeyboardInset()
 
   useEffect(() => lockScroll(), [])
   useEffect(() => {
@@ -49,7 +71,7 @@ function SheetPanel({ onClose, label, children, header, footer, tall, className 
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center" role="presentation">
+    <div className="fixed inset-x-0 top-0 z-50 flex items-end justify-center" style={{ bottom: keyboard }} role="presentation">
       <motion.div
         className="absolute inset-0"
         style={{ background: 'var(--scrim)' }}
@@ -65,7 +87,7 @@ function SheetPanel({ onClose, label, children, header, footer, tall, className 
         aria-label={label}
         className={cn(
           'relative flex w-full max-w-xl flex-col overflow-hidden rounded-t-[28px] border-t border-line bg-bg-elevated shadow-2',
-          tall ? 'h-[92dvh]' : 'max-h-[92dvh]',
+          tall ? 'h-[92%]' : 'max-h-[92%]',
           className,
         )}
         initial={{ y: '100%' }}
@@ -87,7 +109,7 @@ function SheetPanel({ onClose, label, children, header, footer, tall, className 
           {header}
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 pb-4">{children}</div>
-        {footer && <div className="shrink-0 border-t border-line px-5 pt-3 pb-safe">{footer}</div>}
+        {footer && <div className="shrink-0 border-t border-line bg-bg-elevated px-5 pt-3 pb-safe">{footer}</div>}
         {!footer && <div className="pb-safe shrink-0" />}
       </motion.div>
     </div>

@@ -10,7 +10,7 @@ async function enter(page: Page) {
 
 test('arranca con los 13 pendientes precargados', async ({ page }) => {
   await enter(page)
-  await expect(page.getByText('Tenés', { exact: true })).toBeVisible()
+  await expect(page.getByTestId('casa-title')).toBeVisible()
   await page.getByTestId('tab-pendientes').click()
   await expect(page.getByTestId('pending-summary')).toContainText('13 abiertas')
   await expect(page.getByTestId('task-card')).toHaveCount(13)
@@ -88,7 +88,7 @@ test('funciona sin conexión después de la primera carga', async ({ page, conte
   await page.reload()
   await context.setOffline(true)
   await page.reload()
-  await expect(page.getByText('Tenés', { exact: true })).toBeVisible()
+  await expect(page.getByTestId('casa-title')).toBeVisible()
   await context.setOffline(false)
 })
 

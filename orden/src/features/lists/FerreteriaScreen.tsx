@@ -64,7 +64,7 @@ export function FerreteriaScreen() {
 
       <div className="mt-6" data-testid="shopping-list">
         {toBuy.length === 0 ? (
-          <EmptyState icon={PackageCheck} color="var(--success)" title="No falta comprar nada" body="Cuando una tarea pida materiales, aparecen acá." />
+          <EmptyState icon={PackageCheck} color="var(--success-ink)" title="No falta comprar nada" body="Cuando una tarea pida materiales, aparecen acá." />
         ) : (
           <div className="overflow-hidden rounded-[24px] border border-line bg-surface-1">
             <AnimatePresence initial={false}>
@@ -80,7 +80,7 @@ export function FerreteriaScreen() {
         <section className="mt-8">
           <SectionTitle
             action={
-              <button type="button" className="h-8 text-footnote font-semibold text-accent-text" onClick={() => setShowBought((v) => !v)}>
+              <button type="button" className="-my-2 h-11 text-footnote font-semibold text-accent-text" onClick={() => setShowBought((v) => !v)}>
                 {showBought ? 'Ocultar' : 'Mostrar'}
               </button>
             }
@@ -118,8 +118,8 @@ function Row({ item, onToggle, onOpenTask }: { item: ShoppingItem; onToggle: () 
         </p>
         <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
           {item.refs.map((r) => (
-            <button key={r.materialId} type="button" onClick={() => onOpenTask(r.taskId)} className="inline-flex min-h-7 items-center gap-1.5 text-left text-caption text-ink-3">
-              <span className="size-1.5 rounded-full" style={{ background: ROOMS[r.room].color }} />
+            <button key={r.materialId} type="button" onClick={() => onOpenTask(r.taskId)} className="inline-flex min-h-7 items-start gap-1.5 py-1 text-left text-caption text-ink-3">
+              <span className="mt-[5px] size-1.5 shrink-0 rounded-full" style={{ background: ROOMS[r.room].color }} />
               {r.taskTitle}
             </button>
           ))}

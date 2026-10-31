@@ -23,16 +23,19 @@ export interface RoomMeta {
   label: string
   short: string
   icon: LucideIcon
+  /** Color de relleno (fondos, puntos, bordes gruesos) */
   color: string
+  /** Color para texto e íconos finos: tiene contraste AA en ambos temas */
+  ink: string
 }
 
 export const ROOMS: Record<RoomId, RoomMeta> = {
-  living: { id: 'living', label: 'Living', short: 'Living', icon: Sofa, color: 'var(--room-living)' },
-  cocina: { id: 'cocina', label: 'Cocina', short: 'Cocina', icon: CookingPot, color: 'var(--room-cocina)' },
-  pieza: { id: 'pieza', label: 'Pieza', short: 'Pieza', icon: BedDouble, color: 'var(--room-pieza)' },
-  bano: { id: 'bano', label: 'Baño', short: 'Baño', icon: Bath, color: 'var(--room-bano)' },
-  taller: { id: 'taller', label: 'Taller', short: 'Taller', icon: Wrench, color: 'var(--room-taller)' },
-  general: { id: 'general', label: 'Toda la casa', short: 'Casa', icon: House, color: 'var(--room-general)' },
+  living: { id: 'living', label: 'Living', short: 'Living', icon: Sofa, color: 'var(--room-living)', ink: 'var(--room-living-ink)' },
+  cocina: { id: 'cocina', label: 'Cocina', short: 'Cocina', icon: CookingPot, color: 'var(--room-cocina)', ink: 'var(--room-cocina-ink)' },
+  pieza: { id: 'pieza', label: 'Pieza', short: 'Pieza', icon: BedDouble, color: 'var(--room-pieza)', ink: 'var(--room-pieza-ink)' },
+  bano: { id: 'bano', label: 'Baño', short: 'Baño', icon: Bath, color: 'var(--room-bano)', ink: 'var(--room-bano-ink)' },
+  taller: { id: 'taller', label: 'Taller', short: 'Taller', icon: Wrench, color: 'var(--room-taller)', ink: 'var(--room-taller-ink)' },
+  general: { id: 'general', label: 'Toda la casa', short: 'Casa', icon: House, color: 'var(--room-general)', ink: 'var(--room-general-ink)' },
 }
 
 /** Colores hex para la escena 3D (WebGL no entiende variables CSS). */
@@ -71,6 +74,11 @@ export const ENERGY_LABEL: Record<Energy, string> = {
   baja: 'Tranqui',
   media: 'Moderada',
   alta: 'Con pila',
+}
+
+/** El lima de marca es casi invisible como trazo sobre fondo claro: se cambia por su variante. */
+export function strokeFor(color: string): string {
+  return color.toLowerCase() === '#c6f432' || color === 'var(--accent)' ? 'var(--accent-stroke)' : color
 }
 
 export function plural(n: number, one: string, many: string): string {

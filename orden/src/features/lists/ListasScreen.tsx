@@ -6,7 +6,7 @@ import { navigate } from '../../app/router'
 import { SectionTitle } from '../../components/ui/Feedback'
 import { ProgressRing } from '../../components/ui/ProgressRing'
 import { rise, stagger } from '../../design/motion'
-import { plural } from '../../lib/catalog'
+import { plural, strokeFor } from '../../lib/catalog'
 import { shoppingList } from '../../lib/shopping'
 import { smartLists, smartListTasks } from '../../lib/smartLists'
 import { ListEditor } from './ListEditor'
@@ -64,7 +64,7 @@ export function ListasScreen() {
                 <div className="absolute -top-10 -right-10 size-28 rounded-full opacity-25 blur-2xl" style={{ background: l.color }} aria-hidden />
                 <div className="flex items-start justify-between">
                   <span className="text-[30px] leading-none">{l.emoji}</span>
-                  <ProgressRing value={inList.length ? done / inList.length : 0} size={30} stroke={3.5} color={l.color} label={`${done} de ${inList.length} hechas`} />
+                  <ProgressRing value={inList.length ? done / inList.length : 0} size={30} stroke={3.5} color={strokeFor(l.color)} label={`${done} de ${inList.length} hechas`} />
                 </div>
                 <span className="mt-auto pt-4 text-headline font-semibold text-ink">{l.name}</span>
                 <span className="text-footnote text-ink-3">

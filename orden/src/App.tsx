@@ -1,9 +1,10 @@
 import { AnimatePresence, motion, MotionConfig } from 'motion/react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { DataProvider, useData } from './app/data'
 import { parseHash, tabOf, useHash } from './app/router'
 import { UIProvider, useUI } from './app/ui'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { RoomCelebration } from './components/RoomCelebration'
 import { TabBar } from './components/TabBar'
 import { Button } from './components/ui/Button'
 import { Skeleton, Toaster } from './components/ui/Feedback'
@@ -88,6 +89,9 @@ function Shell() {
 
   const badge = tasks.filter(isOpen).length
   const routeKey = route.name + ('id' in route ? route.id : '')
+  useLayoutEffect(() => {
+    window.scrollTo({ top: 0 })
+  }, [routeKey])
 
   return (
     <div className="relative mx-auto min-h-dvh max-w-xl">
@@ -95,8 +99,8 @@ function Shell() {
         {!ready || !booted ? (
           <Loading />
         ) : (
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div key={routeKey} variants={screen} initial="initial" animate="enter" exit="exit" onAnimationStart={(def) => def === 'enter' && window.scrollTo({ top: 0 })}>
+          <>
+            <motion.div key={routeKey} variants={screen} initial="initial" animate="enter">
               <ErrorBoundary fallback={(error, reset) => <Crash error={error} reset={reset} />}>
                 {route.name === 'casa' && <CasaScreen />}
                 {route.name === 'pendientes' && <PendientesScreen initialRoom={route.room} />}
@@ -107,7 +111,7 @@ function Shell() {
                 {route.name === 'ajustes' && <AjustesScreen />}
               </ErrorBoundary>
             </motion.div>
-          </AnimatePresence>
+          </>
         )}
       </main>
 
@@ -117,6 +121,7 @@ function Shell() {
       <SuggestSheet />
       <InstallGuide open={guide} onClose={() => setGuide(false)} />
       <Toaster />
+      <RoomCelebration />
       <AnimatePresence>{welcome && booted && <Welcome onDone={finishWelcome} />}</AnimatePresence>
     </div>
   )

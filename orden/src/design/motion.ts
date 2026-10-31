@@ -11,10 +11,10 @@ export const ease = {
   out: [0.2, 0.8, 0.2, 1] as const,
 }
 
+/** Entrada de pantalla: corta y sin blur (el blur sobre listas largas y WebGL cuesta en iPhone). */
 export const screen: Variants = {
-  initial: { opacity: 0, y: 12, filter: 'blur(6px)' },
-  enter: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.35, ease: ease.out } },
-  exit: { opacity: 0, y: -6, filter: 'blur(4px)', transition: { duration: 0.18, ease: ease.out } },
+  initial: { opacity: 0, y: 8 },
+  enter: { opacity: 1, y: 0, transition: { duration: 0.22, ease: ease.out } },
 }
 
 export const stagger: Variants = {

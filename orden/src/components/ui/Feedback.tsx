@@ -8,7 +8,7 @@ import { cn } from '../../lib/cn'
 export function Toaster() {
   const { toast, dismissToast } = useUI()
   return (
-    <div className="pointer-events-none fixed inset-x-0 z-[60] flex justify-center px-4" style={{ bottom: 'calc(max(var(--sab), 12px) + 92px)' }} aria-live="polite">
+    <div className="pointer-events-none fixed inset-x-0 z-[78] flex justify-center px-4" style={{ bottom: 'calc(max(var(--sab), 12px) + 92px)' }} aria-live="polite">
       <AnimatePresence mode="popLayout">
         {toast && (
           <motion.div
@@ -55,18 +55,18 @@ interface EmptyStateProps {
   color?: string
 }
 
-export function EmptyState({ icon: Icon, title, body, action, color = 'var(--accent)' }: EmptyStateProps) {
+export function EmptyState({ icon: Icon, title, body, action, color = 'var(--accent-stroke)' }: EmptyStateProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={spring.gentle}
-      className="flex flex-col items-center px-6 py-12 text-center"
+      className="flex flex-col items-center px-6 pt-6 pb-4 text-center"
     >
       <motion.div
         className="relative mb-5 flex size-20 items-center justify-center rounded-[28px] border border-line bg-surface-1"
         animate={{ rotate: [0, -4, 4, 0] }}
-        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+        transition={{ duration: 3, repeat: 1, ease: 'easeInOut' }}
       >
         <div className="absolute inset-0 rounded-[28px] opacity-30 blur-xl" style={{ background: color }} aria-hidden />
         <Icon className="relative size-8" style={{ color }} strokeWidth={1.75} />

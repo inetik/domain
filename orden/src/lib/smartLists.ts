@@ -22,17 +22,17 @@ function weekendRange(now: number): [string, string] {
 export function smartLists(tasks: Task[], now = Date.now()): SmartList[] {
   const [sat, sun] = weekendRange(now)
   const lists: SmartList[] = [
-    { id: 'smart:rapidas', name: 'Rápidas', description: '30 minutos o menos', icon: Timer, color: 'var(--accent)', match: (t) => t.minutes <= 30 },
-    { id: 'smart:prioridad', name: 'Prioritarias', description: 'Importantes y urgentes', icon: Flame, color: 'var(--danger)', match: (t) => t.priority > 0 },
-    { id: 'smart:electricidad', name: 'Electricidad', description: 'Con la térmica cortada', icon: Zap, color: 'var(--room-taller)', match: (t) => t.category === 'electricidad' },
-    { id: 'smart:finde', name: 'Este finde', description: 'Con fecha sábado o domingo', icon: CalendarDays, color: 'var(--room-living)', match: (t) => !!t.due && t.due >= sat && t.due <= sun },
-    { id: 'smart:en-curso', name: 'En curso', description: 'Lo que ya arrancaste', icon: Hammer, color: 'var(--room-cocina)', match: (t) => t.status === 'en_curso' },
+    { id: 'smart:rapidas', name: 'Rápidas', description: '30 minutos o menos', icon: Timer, color: 'var(--accent-stroke)', match: (t) => t.minutes <= 30 },
+    { id: 'smart:prioridad', name: 'Prioritarias', description: 'Importantes y urgentes', icon: Flame, color: 'var(--danger-ink)', match: (t) => t.priority > 0 },
+    { id: 'smart:electricidad', name: 'Electricidad', description: 'Con la térmica cortada', icon: Zap, color: 'var(--room-taller-ink)', match: (t) => t.category === 'electricidad' },
+    { id: 'smart:finde', name: 'Este finde', description: 'Con fecha sábado o domingo', icon: CalendarDays, color: 'var(--room-living-ink)', match: (t) => !!t.due && t.due >= sat && t.due <= sun },
+    { id: 'smart:en-curso', name: 'En curso', description: 'Lo que ya arrancaste', icon: Hammer, color: 'var(--room-cocina-ink)', match: (t) => t.status === 'en_curso' },
     {
       id: 'smart:listas',
       name: 'Listas para hacer',
       description: 'No falta comprar nada',
       icon: PackageCheck,
-      color: 'var(--success)',
+      color: 'var(--success-ink)',
       match: (t) => t.materials.every((m) => m.bought) && t.people.length === 0,
     },
   ]
@@ -42,7 +42,7 @@ export function smartLists(tasks: Task[], now = Date.now()): SmartList[] {
       name: `Con ${person}`,
       description: 'Para coordinar juntos',
       icon: Users,
-      color: 'var(--room-pieza)',
+      color: 'var(--room-pieza-ink)',
       match: (t) => t.people.includes(person),
     })
   }

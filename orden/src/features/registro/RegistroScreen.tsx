@@ -1,8 +1,9 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Activity, Clock, Flame, Trophy } from 'lucide-react'
+import { Activity, Clock, Flame, ListPlus, Trophy } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useMemo, useState } from 'react'
 import { useData } from '../../app/data'
+import { navigate } from '../../app/router'
 import { useUI } from '../../app/ui'
 import { AnimatedNumber } from '../../components/ui/AnimatedNumber'
 import { EmptyState, SectionTitle, Skeleton } from '../../components/ui/Feedback'
@@ -36,10 +37,10 @@ export function RegistroScreen() {
       </motion.header>
 
       <motion.div variants={rise} className="grid grid-cols-2 gap-3">
-        <Stat icon={Trophy} label="Hechas" value={done.length} color="var(--success)" />
-        <Stat icon={Activity} label="Esta semana" value={week} color="var(--accent)" />
-        <Stat icon={Flame} label={s === 1 ? 'Día de racha' : 'Días de racha'} value={s} color="var(--room-cocina)" />
-        <Stat icon={Clock} label="Horas invertidas" value={Math.round(minutes / 6) / 10} color="var(--room-living)" decimals />
+        <Stat icon={Trophy} label="Hechas" value={done.length} color="var(--success-ink)" />
+        <Stat icon={Activity} label="Esta semana" value={week} color="var(--accent-stroke)" />
+        <Stat icon={Flame} label={s === 1 ? 'Día de racha' : 'Días de racha'} value={s} color="var(--room-cocina-ink)" />
+        <Stat icon={Clock} label="Horas invertidas" value={Math.round(minutes / 6) / 10} color="var(--room-living-ink)" decimals />
       </motion.div>
 
       <motion.section variants={rise}>
@@ -115,7 +116,7 @@ function Stat({ icon: Icon, label, value, color, decimals }: { icon: typeof Trop
     <div className="relative overflow-hidden rounded-[24px] border border-line bg-surface-1 p-4">
       <div className="absolute -top-8 -right-8 size-20 rounded-full opacity-20 blur-2xl" style={{ background: color }} aria-hidden />
       <Icon className="size-5" style={{ color }} />
-      <p className="mt-3 font-serif text-[40px] leading-none text-ink tabular">{decimals ? value.toLocaleString('es-AR') : <AnimatedNumber value={value} />}</p>
+      <p className="mt-3 text-[40px] leading-none font-semibold tracking-tight text-ink tabular">{decimals ? value.toLocaleString('es-AR') : <AnimatedNumber value={value} />}</p>
       <p className="mt-1 text-footnote text-ink-3">{label}</p>
     </div>
   )
@@ -141,7 +142,7 @@ function Heatmap({ completions }: { completions: number[] }) {
             key={c.day}
             className="aspect-square rounded-[4px]"
             style={{
-              background: c.future ? 'transparent' : c.count ? `color-mix(in oklab, var(--accent) ${30 + (c.count / max) * 70}%, var(--surface-2))` : 'var(--surface-3)',
+              background: c.future ? 'transparent' : c.count ? `color-mix(in oklab, var(--accent-stroke) ${30 + (c.count / max) * 70}%, var(--surface-2))` : 'var(--surface-3)',
             }}
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -153,12 +154,36 @@ function Heatmap({ completions }: { completions: number[] }) {
       <div className="mt-3 flex items-center justify-end gap-1.5 text-caption text-ink-3">
         Menos
         {[0, 0.35, 0.65, 1].map((v) => (
-          <span key={v} className="size-2.5 rounded-[3px]" style={{ background: v ? `color-mix(in oklab, var(--accent) ${30 + v * 70}%, var(--surface-2))` : 'var(--surface-3)' }} />
+          <span key={v} className="size-2.5 rounded-[3px]" style={{ background: v ? `color-mix(in oklab, var(--accent-stroke) ${30 + v * 70}%, var(--surface-2))` : 'var(--surface-3)' }} />
         ))}
         Más
       </div>
     </div>
   )
+}
+
+type TimelineRow = { kind: 'log'; log: LogEntry } | { kind: 'batch'; id: string; count: number; at: number }
+
+/** Varias tareas creadas en el mismo minuto se muestran como una sola fila. */
+function collapse(entries: LogEntry[]): TimelineRow[] {
+  const out: TimelineRow[] = []
+  let run: LogEntry[] = []
+  const flush = () => {
+    if (run.length >= 3) out.push({ kind: 'batch', id: run[0].id, count: run.length, at: run[0].at })
+    else for (const log of run) out.push({ kind: 'log', log })
+    run = []
+  }
+  for (const l of entries) {
+    if (l.type === 'creada' && (!run.length || Math.abs(run[run.length - 1].at - l.at) < 60_000)) {
+      run.push(l)
+      continue
+    }
+    flush()
+    if (l.type === 'creada') run.push(l)
+    else out.push({ kind: 'log', log: l })
+  }
+  flush()
+  return out
 }
 
 function Timeline({ logs }: { logs: LogEntry[] }) {
@@ -178,7 +203,28 @@ function Timeline({ logs }: { logs: LogEntry[] }) {
         <div key={day}>
           <p className="mb-2 text-footnote font-semibold text-ink-2 first-letter:uppercase">{dayLabel(day)}</p>
           <div className="overflow-hidden rounded-[22px] border border-line bg-surface-1">
-            {entries.map((l, i) => {
+            {collapse(entries).map((row, i) => {
+              if (row.kind === 'batch') {
+                return (
+                  <button
+                    key={row.id}
+                    type="button"
+                    onClick={() => navigate('/pendientes')}
+                    className="flex min-h-14 w-full items-center gap-3 px-4 py-2.5 text-left active:bg-surface-2"
+                    style={{ borderTop: i ? '1px solid var(--border)' : undefined }}
+                  >
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-xl" style={{ background: `color-mix(in oklab, ${LOG_META.creada.color} 16%, transparent)`, color: LOG_META.creada.color }}>
+                      <ListPlus className="size-4" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-callout text-ink">Cargaste {row.count} pendientes</span>
+                      <span className="text-caption text-ink-3">De una sola vez</span>
+                    </span>
+                    <span className="text-caption text-ink-3 tabular">{time(row.at)}</span>
+                  </button>
+                )
+              }
+              const l = row.log
               const meta = LOG_META[l.type]
               const Icon = meta.icon
               return (
@@ -196,7 +242,7 @@ function Timeline({ logs }: { logs: LogEntry[] }) {
                     <span className="block truncate text-callout text-ink">{l.taskTitle}</span>
                     <span className="text-caption text-ink-3">
                       {meta.label}
-                      {l.detail ? ` · ${l.detail}` : ''} · <span style={{ color: ROOMS[l.room].color }}>{ROOMS[l.room].short}</span>
+                      {l.detail ? ` · ${l.detail}` : ''} · <span style={{ color: ROOMS[l.room].ink }}>{ROOMS[l.room].short}</span>
                     </span>
                   </span>
                   <span className="text-caption text-ink-3 tabular">{time(l.at)}</span>

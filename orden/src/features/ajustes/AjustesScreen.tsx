@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Check, Download, Monitor, Moon, ShieldCheck, Smartphone, Sun, Trash2, Upload } from 'lucide-react'
+import { Check, Download, ShieldCheck, Smartphone, Trash2, Upload } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useUI, type ThemePref } from '../../app/ui'
@@ -45,7 +45,7 @@ export function AjustesScreen() {
           icon={<Smartphone className="size-5" />}
           title={installed ? 'Instalada como app' : 'Instalala en la pantalla de inicio'}
           body={installed ? 'Funciona sin internet y a pantalla completa.' : 'Tres toques desde Safari, sin App Store.'}
-          action={installed ? <Check className="size-5 text-success" /> : <Button size="sm" className="h-10" onClick={() => setGuide(true)}>Cómo</Button>}
+          action={installed ? <Check className="size-5 text-success-ink" /> : <Button size="sm" className="h-10" onClick={() => setGuide(true)}>Cómo</Button>}
         />
         <Row
           icon={<ShieldCheck className="size-5" />}
@@ -113,11 +113,6 @@ export function AjustesScreen() {
             { value: 'dark', label: 'Oscuro' },
           ]}
         />
-        <div className="mt-2 flex justify-center gap-6 text-ink-3" aria-hidden>
-          <Monitor className="size-4" />
-          <Sun className="size-4" />
-          <Moon className="size-4" />
-        </div>
         <label className="mt-4 flex min-h-12 items-center justify-between gap-3">
           <span>
             <span className="block text-body text-ink">Casa en 3D</span>

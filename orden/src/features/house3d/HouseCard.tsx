@@ -14,7 +14,7 @@ import { spring } from '../../design/motion'
 import { formatMinutes, plural, ROOMS } from '../../lib/catalog'
 import { hasWebGL } from '../../lib/device'
 import { haptic } from '../../lib/haptics'
-import { orderIndex, roomSummary } from '../../lib/stats'
+import { isOpen, orderIndex, roomSummary } from '../../lib/stats'
 import { HouseFallback } from './HouseFallback'
 import type { RoomCounts } from './layout'
 
@@ -32,12 +32,14 @@ export function HouseCard() {
     const out = {} as Record<RoomId, RoomCounts>
     for (const id of ROOM_IDS) {
       const s = roomSummary(tasks, id)
-      out[id] = { open: s.open, done: s.done }
+      const urgent = tasks.filter((t) => t.room === id && isOpen(t) && t.priority === 2).length
+      out[id] = { open: s.open, done: s.done, urgent }
     }
     return out
   }, [tasks])
 
   const index = orderIndex(tasks)
+  const remaining = tasks.filter(isOpen).reduce((a, t) => a + t.minutes, 0)
   const summary = selected ? roomSummary(tasks, selected) : null
   const select = (room: RoomId | null) => {
     if (room) haptic()
@@ -49,7 +51,7 @@ export function HouseCard() {
 
   return (
     <div
-      className="noise relative h-[380px] overflow-hidden rounded-[32px] border border-line"
+      className="noise relative h-[clamp(300px,48dvh,400px)] overflow-hidden rounded-[32px] border border-line"
       style={{
         background:
           resolvedTheme === 'dark'
@@ -58,32 +60,39 @@ export function HouseCard() {
       }}
     >
       {use3d ? (
-        <ErrorBoundary fallback={fallback2d}>
-          <Suspense fallback={<Skeleton className="absolute inset-4 rounded-[24px]" />}>
-            <HouseScene counts={counts} selected={selected} onSelect={select} theme={resolvedTheme} animate={!reduced} />
-          </Suspense>
-        </ErrorBoundary>
+        <div className="absolute inset-0">
+          <ErrorBoundary fallback={fallback2d}>
+            <Suspense fallback={<Skeleton className="absolute inset-4 rounded-[24px]" />}>
+              <HouseScene counts={counts} selected={selected} onSelect={select} theme={resolvedTheme} animate={!reduced} />
+            </Suspense>
+          </ErrorBoundary>
+        </div>
       ) : (
         fallback2d
       )}
 
       {/* Índice de Orden */}
-      <div className="pointer-events-none absolute top-4 left-4 flex items-center gap-3">
+      <motion.div className="pointer-events-none absolute top-4 left-4 flex items-center gap-3" animate={{ opacity: selected ? 0 : 1, y: selected ? -8 : 0 }}>
         <ProgressRing value={index / 100} size={52} stroke={5} label={`Índice de Orden ${index}%`}>
           <AnimatedNumber value={index} className="text-footnote font-semibold text-ink tabular" />
         </ProgressRing>
         <div>
           <p className="text-caption font-semibold tracking-[0.08em] text-ink-3 uppercase">Índice de orden</p>
-          <p className="font-serif text-[22px] leading-none text-ink">
-            {index < 25 ? 'Arrancando' : index < 50 ? 'En marcha' : index < 80 ? 'Casi' : index < 100 ? 'Último empujón' : 'Impecable'}
-          </p>
+          <p className="font-serif text-[22px] leading-none text-ink">{remaining ? `${formatMinutes(remaining)} por delante` : 'Impecable'}</p>
         </div>
-      </div>
-      {use3d && !selected && (
-        <div className="pointer-events-none absolute top-5 right-4 flex items-center gap-1 rounded-full bg-surface-1/60 px-2.5 py-1 text-caption text-ink-3 backdrop-blur">
-          <Box className="size-3.5" /> Tocá un ambiente
-        </div>
-      )}
+      </motion.div>
+      <AnimatePresence>
+        {use3d && !selected && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="pointer-events-none absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-surface-1/70 px-3 py-1.5 text-caption whitespace-nowrap text-ink-2 backdrop-blur"
+          >
+            <Box className="size-3.5" /> Tocá un ambiente · arrastrá para girar
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Ambiente seleccionado */}
       <AnimatePresence>
@@ -109,7 +118,7 @@ export function HouseCard() {
                   {summary.open ? `${plural(summary.open, 'pendiente', 'pendientes')} · ~${formatMinutes(summary.minutes)}` : summary.done ? '¡Todo resuelto acá!' : 'Sin pendientes'}
                 </p>
               </div>
-              <IconButton label="Cerrar" tone="ghost" onClick={() => select(null)} className="size-9">
+              <IconButton label="Cerrar" tone="ghost" onClick={() => select(null)}>
                 <X className="size-4" />
               </IconButton>
             </div>

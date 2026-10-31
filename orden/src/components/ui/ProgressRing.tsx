@@ -11,7 +11,7 @@ interface ProgressRingProps {
   label?: string
 }
 
-export function ProgressRing({ value, size = 64, stroke = 6, color = 'var(--accent)', track = 'var(--border-strong)', children, label }: ProgressRingProps) {
+export function ProgressRing({ value, size = 64, stroke = 6, color = 'var(--accent-stroke)', track = 'var(--border-strong)', children, label }: ProgressRingProps) {
   const r = (size - stroke) / 2
   const clamped = Math.max(0, Math.min(1, value))
   return (

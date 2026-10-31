@@ -16,7 +16,7 @@ import { CATEGORY_IDS, type Energy, type Priority, type Task } from '../../db/ty
 import { spring } from '../../design/motion'
 import { CATEGORIES, ENERGY_LABEL, formatMinutes, ROOM_ORDER, ROOMS } from '../../lib/catalog'
 import { cn } from '../../lib/cn'
-import { dayLabel, longDate, time } from '../../lib/dates'
+import { addDays, dayLabel, isoDate, longDate, nextWeekday, startOfDay, time } from '../../lib/dates'
 import { uid } from '../../lib/id'
 import { suggestMaterials } from '../../lib/materials'
 import { knownPeople } from '../../lib/stats'
@@ -41,7 +41,7 @@ export function TaskDetail() {
         task && (
           <div className="flex items-center gap-2 pb-2">
             <RoomPill task={task} />
-            <span className="inline-flex h-8 items-center gap-1.5 rounded-full bg-surface-2 px-3 text-caption font-medium text-ink-2">
+            <span className="inline-flex h-8 max-w-[45%] min-w-0 items-center gap-1.5 truncate rounded-full bg-surface-2 px-3 text-caption font-medium whitespace-nowrap text-ink-2">
               {(() => {
                 const Icon = CATEGORIES[task.category].icon
                 return <Icon className="size-3.5" />
@@ -49,7 +49,7 @@ export function TaskDetail() {
               {CATEGORIES[task.category].label}
             </span>
             <div className="flex-1" />
-            <IconButton label="Cerrar" onClick={closeTask} className="size-9">
+            <IconButton label="Cerrar" onClick={closeTask}>
               <X className="size-4.5" />
             </IconButton>
           </div>
@@ -170,7 +170,7 @@ function TaskBody({ task }: { task: Task }) {
 
       {task.category === 'electricidad' && !done && (
         <div className="mt-4 flex gap-3 rounded-[20px] border border-warn/30 bg-warn/10 p-4">
-          <ShieldAlert className="mt-0.5 size-5 shrink-0 text-warn" />
+          <ShieldAlert className="mt-0.5 size-5 shrink-0 text-warn-ink" />
           <p className="text-callout text-ink">
             <strong>Seguridad primero.</strong> Cortá la térmica, verificá con el buscapolo y no trabajes con las manos húmedas.
           </p>
@@ -233,11 +233,11 @@ function TaskBody({ task }: { task: Task }) {
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Medidas, links, ideas…"
           aria-label="Notas"
-          className="min-h-24 w-full resize-none rounded-2xl border border-line bg-surface-1 p-3.5 text-body text-ink outline-none placeholder:text-ink-3 focus:border-accent"
+          className="min-h-24 w-full resize-none rounded-2xl border border-line bg-surface-1 p-3.5 text-body text-ink outline-none placeholder:text-ink-3 focus:border-accent-stroke"
         />
       </Section>
 
-      <Section title="Ajustes">
+      <Section title="Detalles">
         <Label>Ambiente</Label>
         <Scroller>
           {ROOM_ORDER.map((r) => {
@@ -287,13 +287,20 @@ function TaskBody({ task }: { task: Task }) {
           ]}
         />
         <Label>Fecha</Label>
+        <div className="mb-2 flex flex-wrap gap-2">
+          {quickDates().map((d) => (
+            <Chip key={d.label} selected={task.due === d.value} onClick={() => patch({ due: task.due === d.value ? undefined : d.value })}>
+              {d.label}
+            </Chip>
+          ))}
+        </div>
         <div className="flex gap-2">
           <input
             type="date"
             value={task.due ?? ''}
             onChange={(e) => patch({ due: e.target.value || undefined })}
             aria-label="Fecha objetivo"
-            className="h-12 min-w-0 flex-1 rounded-2xl border border-line bg-surface-1 px-4 text-ink outline-none focus:border-accent"
+            className="h-12 min-w-0 flex-1 rounded-2xl border border-line bg-surface-1 px-4 text-ink outline-none focus:border-accent-stroke"
           />
           {task.due && (
             <Button variant="ghost" onClick={() => patch({ due: undefined })}>
@@ -336,7 +343,7 @@ function TaskBody({ task }: { task: Task }) {
 
       <div className="mt-8 flex gap-2">
         <Button
-          block
+          className="flex-1"
           icon={<Copy className="size-4" />}
           onClick={async () => {
             const copy = await duplicateTask(task.id)
@@ -349,7 +356,7 @@ function TaskBody({ task }: { task: Task }) {
           Duplicar
         </Button>
         <Button
-          block
+          className="flex-1"
           variant="danger"
           icon={<Trash2 className="size-4" />}
           onClick={() => {
@@ -362,6 +369,17 @@ function TaskBody({ task }: { task: Task }) {
       </div>
     </div>
   )
+}
+
+function quickDates(now = Date.now()) {
+  const day = new Date(now).getDay()
+  const saturday = day === 6 || day === 0 ? now : nextWeekday(now, 6)
+  return [
+    { label: 'Hoy', value: isoDate(now) },
+    { label: 'Mañana', value: isoDate(addDays(startOfDay(now), 1)) },
+    { label: 'Este finde', value: isoDate(saturday) },
+    { label: 'En una semana', value: isoDate(addDays(startOfDay(now), 7)) },
+  ]
 }
 
 function Section({ title, meta, children }: { title: string; meta?: string; children: ReactNode }) {
@@ -432,7 +450,7 @@ function AddRow({ placeholder, onAdd }: { placeholder: string; onAdd: (v: string
         placeholder={placeholder}
         aria-label={placeholder}
         enterKeyHint="done"
-        className="h-12 min-w-0 flex-1 rounded-2xl border border-line bg-surface-1 px-4 text-ink outline-none placeholder:text-ink-3 focus:border-accent"
+        className="h-12 min-w-0 flex-1 rounded-2xl border border-line bg-surface-1 px-4 text-ink outline-none placeholder:text-ink-3 focus:border-accent-stroke"
       />
       <IconButton label="Agregar" onClick={submit} className={cn('size-12 rounded-2xl', value.trim() && 'bg-accent text-accent-ink')}>
         <Plus className="size-5" />

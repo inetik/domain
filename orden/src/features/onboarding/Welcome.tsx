@@ -62,7 +62,7 @@ export function Welcome({ onDone }: { onDone: () => void }) {
           })}
         </ul>
 
-        <div className="mt-auto pt-8 pb-4">
+        <div className="sticky bottom-0 mt-auto bg-gradient-to-t from-bg from-60% to-transparent pt-8 pb-4">
           <Button variant="primary" size="lg" block onClick={onDone} data-testid="welcome-start">
             Entrar a mi casa
           </Button>

@@ -63,8 +63,19 @@
   --border-strong: rgba(255, 255, 255, 0.16);
   --text: #f5f5f7;
   --text-2: #a8a8b3;
-  --text-3: #6f6f7b;
+  --text-3: #8a8a96;
   --accent-text: #c6f432;
+  --accent-stroke: #c6f432;
+  /* Variantes de color para texto (en oscuro, iguales al color base) */
+  --room-living-ink: var(--room-living);
+  --room-cocina-ink: var(--room-cocina);
+  --room-pieza-ink: var(--room-pieza);
+  --room-bano-ink: var(--room-bano);
+  --room-taller-ink: var(--room-taller);
+  --room-general-ink: var(--room-general);
+  --warn-ink: var(--warn);
+  --danger-ink: var(--danger);
+  --success-ink: var(--success);
   --glass: rgba(21, 21, 28, 0.72);
   --scrim: rgba(0, 0, 0, 0.55);
   --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.25);
@@ -85,8 +96,19 @@
   --border-strong: rgba(20, 20, 30, 0.16);
   --text: #15151b;
   --text-2: #565662;
-  --text-3: #8a8a96;
+  --text-3: #6e6e7a;
   --accent-text: #4d6b00;
+  --accent-stroke: #6f9a00;
+  /* Texto de color con contraste AA sobre el fondo claro */
+  --room-living-ink: #3f5fd6;
+  --room-cocina-ink: #b85413;
+  --room-pieza-ink: #7446d1;
+  --room-bano-ink: #0f7d74;
+  --room-taller-ink: #876400;
+  --room-general-ink: #5b6472;
+  --warn-ink: #a15c07;
+  --danger-ink: #c2362f;
+  --success-ink: #0f7a4f;
   --glass: rgba(255, 255, 255, 0.78);
   --scrim: rgba(20, 20, 30, 0.35);
   --shadow-1: 0 1px 2px rgba(20, 20, 30, 0.06), 0 4px 16px rgba(20, 20, 30, 0.06);

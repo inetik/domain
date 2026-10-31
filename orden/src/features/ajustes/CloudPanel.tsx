@@ -5,7 +5,7 @@ import { Button } from '../../components/ui/Button'
 import { CLOUD_SQL, disconnectCloud, getCloudStatus, saveCloudConfig, signIn, signOut, signUp, syncNow, type CloudStatus } from '../../db/sync'
 import { dayLabel, time } from '../../lib/dates'
 
-const input = 'h-12 w-full rounded-2xl border border-line bg-surface-1 px-4 text-ink outline-none placeholder:text-ink-3 focus:border-accent'
+const input = 'h-12 w-full rounded-2xl border border-line bg-surface-1 px-4 text-ink outline-none placeholder:text-ink-3 focus:border-accent-stroke'
 
 export function CloudPanel() {
   const { showToast } = useUI()
@@ -76,7 +76,7 @@ export function CloudPanel() {
             </Button>
           </div>
         </Step>
-        {error && <p className="text-footnote text-danger">{error}</p>}
+        {error && <p className="text-footnote text-danger-ink">{error}</p>}
       </div>
     )
   }
@@ -115,7 +115,7 @@ export function CloudPanel() {
             Entrar
           </Button>
         </div>
-        {error && <p className="text-footnote text-danger">{error}</p>}
+        {error && <p className="text-footnote text-danger-ink">{error}</p>}
         <button type="button" className="h-11 text-footnote font-medium text-ink-3" onClick={() => run(disconnectCloud)}>
           Desconectar nube
         </button>
@@ -126,7 +126,7 @@ export function CloudPanel() {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-3 rounded-[20px] border border-success/30 bg-success/10 p-4">
-        <Cloud className="size-5 text-success" />
+        <Cloud className="size-5 text-success-ink" />
         <div className="min-w-0 flex-1">
           <p className="truncate text-callout font-semibold text-ink">{status.email}</p>
           <p className="text-footnote text-ink-2">{status.lastSyncAt ? `Última sincronización: ${dayLabel(status.lastSyncAt).toLowerCase()} ${time(status.lastSyncAt)}` : 'Todavía sin sincronizar'}</p>
@@ -146,7 +146,7 @@ export function CloudPanel() {
       >
         Sincronizar ahora
       </Button>
-      {error && <p className="text-footnote text-danger">{error}</p>}
+      {error && <p className="text-footnote text-danger-ink">{error}</p>}
       <div className="flex gap-2">
         <Button className="flex-1" icon={<LogOut className="size-4" />} onClick={() => run(signOut)}>
           Cerrar sesión

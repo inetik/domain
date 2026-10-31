@@ -28,6 +28,12 @@ export function PendientesScreen({ initialRoom }: { initialRoom?: string }) {
   const [hint, setHint] = useState(() => ls.get('orden:swipeHint') !== 'off')
 
   useEffect(() => setRoom(asRoom(initialRoom)), [initialRoom])
+  // Si venimos filtrados desde la casa, mostrar el chip activo
+  useEffect(() => {
+    if (!initialRoom) return
+    const t = setTimeout(() => document.querySelector(`[data-room-chip="${initialRoom}"]`)?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }), 150)
+    return () => clearTimeout(t)
+  }, [initialRoom])
 
   const filtered = useMemo(() => {
     const q = normalize(query)
@@ -62,9 +68,9 @@ export function PendientesScreen({ initialRoom }: { initialRoom?: string }) {
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Buscar tareas, materiales, personas…"
+          placeholder="Buscar…"
           aria-label="Buscar"
-          className="h-12 w-full rounded-2xl border border-line bg-surface-1 pr-11 pl-11 text-ink outline-none placeholder:text-ink-3 focus:border-accent"
+          className="h-12 w-full rounded-2xl border border-line bg-surface-1 pr-11 pl-11 text-ink outline-none placeholder:text-ink-3 focus:border-accent-stroke"
         />
         {query && (
           <button type="button" aria-label="Borrar búsqueda" onClick={() => setQuery('')} className="absolute top-1/2 right-1 flex size-10 -translate-y-1/2 items-center justify-center text-ink-3">
@@ -81,9 +87,11 @@ export function PendientesScreen({ initialRoom }: { initialRoom?: string }) {
           const n = totalOpen.filter((t) => t.room === r).length
           const Icon = ROOMS[r].icon
           return (
-            <Chip key={r} selected={room === r} color={ROOMS[r].color} icon={<Icon className="size-4" />} onClick={() => setRoom(room === r ? null : r)}>
-              {ROOMS[r].short} <span className="opacity-60 tabular">{n}</span>
-            </Chip>
+            <span key={r} data-room-chip={r} className="contents">
+              <Chip selected={room === r} color={ROOMS[r].color} icon={<Icon className="size-4" />} onClick={() => setRoom(room === r ? null : r)}>
+                {ROOMS[r].short} <span className="opacity-60 tabular">{n}</span>
+              </Chip>
+            </span>
           )
         })}
       </motion.div>
@@ -107,9 +115,9 @@ export function PendientesScreen({ initialRoom }: { initialRoom?: string }) {
             setGroupBy(v)
           }}
           options={[
-            { value: 'ambiente', label: 'Por ambiente' },
-            { value: 'tipo', label: 'Por tipo' },
-            { value: 'prioridad', label: 'Por prioridad' },
+            { value: 'ambiente', label: 'Ambiente' },
+            { value: 'tipo', label: 'Tipo' },
+            { value: 'prioridad', label: 'Prioridad' },
           ]}
         />
       </motion.div>
@@ -123,9 +131,11 @@ export function PendientesScreen({ initialRoom }: { initialRoom?: string }) {
             className="overflow-hidden"
           >
             <div className="mt-4 flex items-center gap-3 rounded-2xl border border-dashed border-line-strong p-3 text-footnote text-ink-2">
-              <motion.span animate={{ x: [0, 14, 0, -14, 0] }} transition={{ duration: 2.4, repeat: Infinity }}>
-                <Hand className="size-5 text-accent-text" />
-              </motion.span>
+              <span className="flex w-10 shrink-0 justify-center">
+                <motion.span animate={{ x: [0, 12, 0, -12, 0] }} transition={{ duration: 2.4, repeat: 3 }}>
+                  <Hand className="size-5 text-accent-text" />
+                </motion.span>
+              </span>
               <span className="flex-1">Deslizá una tarea → para terminarla, ← para pasarla a mañana.</span>
               <button
                 type="button"
@@ -134,7 +144,7 @@ export function PendientesScreen({ initialRoom }: { initialRoom?: string }) {
                   ls.set('orden:swipeHint', 'off')
                   setHint(false)
                 }}
-                className="flex size-9 items-center justify-center text-ink-3"
+                className="-my-2 flex size-11 shrink-0 items-center justify-center text-ink-3"
               >
                 <X className="size-4" />
               </button>
@@ -150,8 +160,8 @@ export function PendientesScreen({ initialRoom }: { initialRoom?: string }) {
           <EmptyState
             icon={SearchX}
             title="Nada con ese filtro"
-            body={room ? `En ${ROOMS[room].label} no queda nada abierto.` : 'Probá con otra búsqueda.'}
-            color={room ? ROOMS[room].color : undefined}
+            body={room ? `En ${room === 'general' ? 'toda la casa' : ROOMS[room].label} no queda nada abierto.` : 'Probá con otra búsqueda.'}
+            color={room ? ROOMS[room].ink : undefined}
             action={
               <div className="flex gap-2">
                 <Button
@@ -172,7 +182,7 @@ export function PendientesScreen({ initialRoom }: { initialRoom?: string }) {
             }
           />
         ) : open.length === 0 ? (
-          <EmptyState icon={ListChecks} title="¡Casa en orden!" body="No queda nada abierto. Disfrutalo." color="var(--success)" />
+          <EmptyState icon={ListChecks} title="¡Casa en orden!" body="No queda nada abierto. Disfrutalo." color="var(--success-ink)" />
         ) : (
           groups.map(([key, label, color, list]) => (
             <section key={key} className="mb-6">

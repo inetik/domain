@@ -7,6 +7,7 @@ import type { Task } from '../../db/types'
 import { spring } from '../../design/motion'
 import { CATEGORIES, formatMinutes, ROOMS } from '../../lib/catalog'
 import { cn } from '../../lib/cn'
+import { haptic } from '../../lib/haptics'
 import { dueLabel, isoDate } from '../../lib/dates'
 import { useTaskActions } from './useTaskActions'
 
@@ -22,10 +23,11 @@ export const TaskCard = forwardRef<HTMLDivElement, TaskCardProps>(function TaskC
   const actions = useTaskActions()
   const [celebrating, setCelebrating] = useState(false)
   useEffect(() => setCelebrating(false), [task.status])
+  const [armed, setArmed] = useState<'done' | 'snooze' | null>(null)
   const x = useMotionValue(0)
-  const doneOpacity = useTransform(x, [0, THRESHOLD], [0, 1])
-  const snoozeOpacity = useTransform(x, [-THRESHOLD, 0], [1, 0])
-  const iconScale = useTransform(x, [-THRESHOLD * 1.4, -THRESHOLD, 0, THRESHOLD, THRESHOLD * 1.4], [1.25, 1, 0.6, 1, 1.25])
+  const doneOpacity = useTransform(x, [0, THRESHOLD * 0.6, THRESHOLD], [0, 0.7, 1])
+  const snoozeOpacity = useTransform(x, [-THRESHOLD, -THRESHOLD * 0.6, 0], [1, 0.7, 0])
+  const iconScale = useTransform(x, [-THRESHOLD, -THRESHOLD * 0.4, 0, THRESHOLD * 0.4, THRESHOLD], [1, 0.75, 0.6, 0.75, 1])
 
   const room = ROOMS[task.room]
   const category = CATEGORIES[task.category]
@@ -45,7 +47,17 @@ export const TaskCard = forwardRef<HTMLDivElement, TaskCardProps>(function TaskC
     setTimeout(() => actions.complete(task), 420)
   }
 
+  // Al cruzar el umbral: vibración y el ícono "salta" para avisar que al soltar se aplica
+  const onDrag = (_: unknown, info: PanInfo) => {
+    const next = info.offset.x > THRESHOLD ? 'done' : info.offset.x < -THRESHOLD && !done ? 'snooze' : null
+    if (next !== armed) {
+      if (next) haptic()
+      setArmed(next)
+    }
+  }
+
   const onDragEnd = (_: unknown, info: PanInfo) => {
+    setArmed(null)
     if (info.offset.x > THRESHOLD) celebrate()
     else if (info.offset.x < -THRESHOLD && !done) actions.snooze(task)
   }
@@ -64,12 +76,12 @@ export const TaskCard = forwardRef<HTMLDivElement, TaskCardProps>(function TaskC
       <div className="relative overflow-hidden rounded-[22px]">
         {/* Acciones que aparecen al deslizar */}
         <motion.div className="absolute inset-0 flex items-center justify-start rounded-[22px] bg-success pl-6" style={{ opacity: doneOpacity }} aria-hidden>
-          <motion.span style={{ scale: iconScale }} className="flex items-center gap-2 font-semibold text-[#06281b]">
+          <motion.span style={{ scale: iconScale }} animate={armed === 'done' ? { rotate: [0, -8, 8, 0] } : {}} className={cn('flex items-center gap-2 font-semibold text-[#06281b]', armed === 'done' && 'scale-125')}>
             <Check className="size-6" strokeWidth={3} /> {done ? 'Reabrir' : 'Hecha'}
           </motion.span>
         </motion.div>
         <motion.div className="absolute inset-0 flex items-center justify-end rounded-[22px] bg-warn pr-6" style={{ opacity: snoozeOpacity }} aria-hidden>
-          <motion.span style={{ scale: iconScale }} className="flex items-center gap-2 font-semibold text-[#2b1d00]">
+          <motion.span style={{ scale: iconScale }} animate={armed === 'snooze' ? { rotate: [0, 8, -8, 0] } : {}} className="flex items-center gap-2 font-semibold text-[#2b1d00]">
             Mañana <AlarmClock className="size-6" strokeWidth={2.5} />
           </motion.span>
         </motion.div>
@@ -78,8 +90,9 @@ export const TaskCard = forwardRef<HTMLDivElement, TaskCardProps>(function TaskC
           drag="x"
           dragDirectionLock
           dragConstraints={{ left: 0, right: 0 }}
-          dragElastic={0.55}
+          dragElastic={1}
           dragSnapToOrigin
+          onDrag={onDrag}
           onDragEnd={onDragEnd}
           style={{ x }}
           className={cn('relative flex items-start gap-3 rounded-[22px] border border-line bg-surface-1 p-3.5 pr-4', done && 'opacity-70')}
@@ -92,7 +105,7 @@ export const TaskCard = forwardRef<HTMLDivElement, TaskCardProps>(function TaskC
           >
             <motion.span
               className="flex size-7 items-center justify-center rounded-full border-2"
-              style={{ borderColor: room.color, background: done || celebrating ? room.color : 'transparent' }}
+              style={{ borderColor: done || celebrating ? room.color : room.ink, background: done || celebrating ? room.color : 'transparent' }}
               animate={celebrating ? { scale: [1, 1.35, 1] } : { scale: 1 }}
               transition={spring.bouncy}
             >
@@ -109,12 +122,12 @@ export const TaskCard = forwardRef<HTMLDivElement, TaskCardProps>(function TaskC
             <div className="flex items-start gap-2">
               <span className={cn('min-w-0 flex-1 text-[16px] leading-snug font-medium text-ink', done && 'line-through decoration-ink-3')}>{task.title}</span>
               {task.priority > 0 && !done && (
-                <Flame className={cn('mt-0.5 size-4 shrink-0', task.priority === 2 ? 'text-danger' : 'text-warn')} fill="currentColor" aria-label={task.priority === 2 ? 'Urgente' : 'Importante'} />
+                <Flame className={cn('mt-0.5 size-4 shrink-0', task.priority === 2 ? 'text-danger-ink' : 'text-warn-ink')} fill="currentColor" aria-label={task.priority === 2 ? 'Urgente' : 'Importante'} />
               )}
             </div>
             <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-caption text-ink-3">
               {showRoom && (
-                <span className="inline-flex items-center gap-1 font-medium" style={{ color: room.color }}>
+                <span className="inline-flex items-center gap-1 font-medium" style={{ color: room.ink }}>
                   <RoomIcon className="size-3.5" /> {room.short}
                 </span>
               )}
@@ -137,7 +150,7 @@ export const TaskCard = forwardRef<HTMLDivElement, TaskCardProps>(function TaskC
                 </span>
               )}
               {task.due && !done && (
-                <span className={cn('inline-flex items-center gap-1', overdue && 'font-semibold text-danger')}>
+                <span className={cn('inline-flex items-center gap-1', overdue && 'font-semibold text-danger-ink')}>
                   <CalendarDays className="size-3.5" /> {dueLabel(task.due)}
                 </span>
               )}

@@ -14,15 +14,15 @@ interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'children'> {
 }
 
 const variants: Record<Variant, string> = {
-  primary: 'bg-accent text-accent-ink font-semibold shadow-glow',
-  secondary: 'bg-surface-2 text-ink font-medium',
-  ghost: 'bg-transparent text-ink-2 font-medium',
-  danger: 'bg-[color-mix(in_oklab,var(--danger)_16%,transparent)] text-danger font-semibold',
-  outline: 'border border-line-strong text-ink font-medium',
+  primary: 'bg-accent text-accent-ink font-semibold shadow-glow disabled:bg-surface-2 disabled:text-ink-3 disabled:shadow-none',
+  secondary: 'bg-surface-2 text-ink font-medium disabled:opacity-40',
+  ghost: 'bg-transparent text-ink-2 font-medium disabled:opacity-40',
+  danger: 'bg-[color-mix(in_oklab,var(--danger)_16%,transparent)] text-danger-ink font-semibold disabled:opacity-40',
+  outline: 'border border-line-strong text-ink font-medium disabled:opacity-40',
 }
 
 const sizes: Record<Size, string> = {
-  sm: 'h-9 px-3.5 text-footnote gap-1.5 rounded-xl',
+  sm: 'h-11 px-4 text-footnote gap-1.5 rounded-xl',
   md: 'h-12 px-5 text-callout gap-2 rounded-2xl',
   lg: 'h-14 px-6 text-headline gap-2.5 rounded-[20px]',
 }
@@ -34,7 +34,7 @@ export function Button({ variant = 'secondary', size = 'md', icon, children, blo
       whileTap={disabled ? undefined : { scale: 0.96 }}
       transition={{ type: 'spring', stiffness: 600, damping: 30 }}
       className={cn(
-        'inline-flex shrink-0 items-center justify-center whitespace-nowrap transition-colors disabled:opacity-40',
+        'inline-flex min-w-0 items-center justify-center whitespace-nowrap transition-colors',
         variants[variant],
         sizes[size],
         block && 'w-full',
@@ -43,8 +43,8 @@ export function Button({ variant = 'secondary', size = 'md', icon, children, blo
       disabled={disabled}
       {...rest}
     >
-      {icon}
-      {children}
+      {icon && <span className="shrink-0">{icon}</span>}
+      {children != null && <span className="truncate">{children}</span>}
     </motion.button>
   )
 }

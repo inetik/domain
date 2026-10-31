@@ -11,7 +11,7 @@ import { Sheet } from '../../components/ui/Sheet'
 import { deleteList, setTaskInList } from '../../db/repo'
 import type { TaskList } from '../../db/types'
 import { rise, stagger } from '../../design/motion'
-import { formatMinutes, plural, ROOMS } from '../../lib/catalog'
+import { formatMinutes, plural, ROOMS, strokeFor } from '../../lib/catalog'
 import { cn } from '../../lib/cn'
 import { isOpen } from '../../lib/stats'
 import { smartLists } from '../../lib/smartLists'
@@ -41,7 +41,7 @@ export function ListaScreen({ id }: { id: string }) {
   const open = inList.filter(isOpen)
   const done = inList.filter((t) => t.status === 'hecha')
   const minutes = open.reduce((a, t) => a + t.minutes, 0)
-  const color = smart?.color ?? custom!.color
+  const color = strokeFor(smart?.color ?? custom!.color)
   const Icon = smart?.icon
 
   return (
@@ -63,7 +63,7 @@ export function ListaScreen({ id }: { id: string }) {
                   navigate('/listas')
                 }}
               >
-                <Trash2 className="size-4.5 text-danger" />
+                <Trash2 className="size-4.5 text-danger-ink" />
               </IconButton>
             </div>
           )
@@ -153,7 +153,7 @@ function TaskPicker({ open, onClose, list }: { open: boolean; onClose: () => voi
             </span>
             <span className="min-w-0 flex-1">
               <span className="block text-body text-ink">{t.title}</span>
-              <span className="text-caption font-medium" style={{ color: room.color }}>
+              <span className="text-caption font-medium" style={{ color: room.ink }}>
                 {room.label}
               </span>
             </span>

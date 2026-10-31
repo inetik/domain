@@ -15,9 +15,19 @@ export interface QuickAddPrefill {
   room?: RoomId
   listId?: string
   text?: string
+  /** Distinto en cada apertura (reinicia el formulario) */
+  nonce?: number
+}
+
+export interface Celebration {
+  room: RoomId | 'casa'
+  at: number
 }
 
 interface UI {
+  celebration: Celebration | null
+  celebrate: (room: RoomId | 'casa') => void
+  clearCelebration: () => void
   taskId: string | null
   openTask: (id: string) => void
   closeTask: () => void
@@ -61,6 +71,9 @@ export function UIProvider({ children }: { children: ReactNode }) {
   const [quickAdd, setQuickAdd] = useState<QuickAddPrefill | null>(null)
   const [suggestOpen, setSuggestOpen] = useState(false)
   const [toast, setToast] = useState<ToastData | null>(null)
+  const [celebration, setCelebration] = useState<Celebration | null>(null)
+  const celebrate = useCallback((room: RoomId | 'casa') => setCelebration({ room, at: Date.now() }), [])
+  const clearCelebration = useCallback(() => setCelebration(null), [])
   const [theme, setThemeState] = useState<ThemePref>(() => (ls.get('orden:theme') as ThemePref) || 'system')
   const [sys, setSys] = useState<'light' | 'dark'>(systemTheme)
   const [scene3d, setScene3dState] = useState(() => ls.get('orden:3d') !== 'off')
@@ -104,13 +117,16 @@ export function UIProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<UI>(
     () => ({
+      celebration,
+      celebrate,
+      clearCelebration,
       taskId,
       openTask: (id) => setTaskId(id),
       closeTask: () => setTaskId(null),
       quickAdd,
       openQuickAdd: (prefill) => {
         primeKeyboard()
-        setQuickAdd(prefill ?? {})
+        setQuickAdd({ ...prefill, nonce: Date.now() })
       },
       closeQuickAdd: () => setQuickAdd(null),
       suggestOpen,
@@ -124,7 +140,7 @@ export function UIProvider({ children }: { children: ReactNode }) {
       scene3d,
       setScene3d,
     }),
-    [taskId, quickAdd, suggestOpen, toast, showToast, dismissToast, theme, resolvedTheme, setTheme, scene3d, setScene3d],
+    [celebration, celebrate, clearCelebration, taskId, quickAdd, suggestOpen, toast, showToast, dismissToast, theme, resolvedTheme, setTheme, scene3d, setScene3d],
   )
 
   return <UIContext.Provider value={value}>{children}</UIContext.Provider>

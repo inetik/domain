@@ -1,18 +1,23 @@
 import { useMemo } from 'react'
 import { useUI } from '../../app/ui'
 import { completeTask, deleteTask, reopenTask, revertTask, snoozeTask, startTask } from '../../db/repo'
+import { db } from '../../db/schema'
 import type { Task } from '../../db/types'
 import { haptic } from '../../lib/haptics'
 
 /** Acciones de tarea con feedback (vibración + toast con "Deshacer"). */
 export function useTaskActions() {
-  const { showToast } = useUI()
+  const { showToast, celebrate } = useUI()
   return useMemo(
     () => ({
       async complete(task: Task) {
         haptic('success')
         const logId = await completeTask(task.id)
         showToast({ message: `¡Hecha! ${task.title}`, tone: 'success', action: { label: 'Deshacer', onClick: () => revertTask(task, logId) } })
+        // ¿Era la última del ambiente (o de toda la casa)? Festejo.
+        const open = await db.tasks.filter((t) => !t.deletedAt && t.status !== 'hecha').toArray()
+        if (open.length === 0) celebrate('casa')
+        else if (!open.some((t) => t.room === task.room)) celebrate(task.room)
       },
       async reopen(task: Task) {
         haptic()
@@ -39,6 +44,6 @@ export function useTaskActions() {
         showToast({ message: 'Tarea borrada', tone: 'warn', action: { label: 'Deshacer', onClick: () => revertTask(task, logId) } })
       },
     }),
-    [showToast],
+    [showToast, celebrate],
   )
 }
