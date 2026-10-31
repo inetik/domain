@@ -5,11 +5,10 @@
 ## Cómo tenerla en el iPhone
 
 1. **Publicarla (una sola vez)** — en GitHub, repo `inetik/domain`:
-   - **Activar Actions:** como el repo es un fork de `is-a-dev/register`, GitHub trae las Actions apagadas. Entrá a la pestaña *Actions* y tocá **“I understand my workflows, go ahead and enable them”**.
-   - **Apagar los workflows heredados** de is-a.dev (no sirven en tu fork y algunos corren solos): en *Actions*, entrá a cada uno — *Pull Request Labeler* (corre cada 10 minutos), *StaleBOT*, *Publish*, *Raw API* y *Validation* — y en el menú **⋯ → Disable workflow**. Dejá prendido solo **“Orden · GitHub Pages”**.
    - *Settings → Pages → Build and deployment → Source:* **GitHub Actions**.
-   - *Settings → Environments → github-pages → Deployment branches:* agregá `claude/home-tasks-web-app-pi7hsu` (o mergeá a `main`).
-   - *Actions → “Orden · GitHub Pages” → Run workflow* (o hacé cualquier push en `orden/`).
+   - **Mergeá el PR #1 a `main`.** Al mergear, el workflow **“Orden · GitHub Pages”** construye y publica la app solo. Los workflows que el repo traía de is-a.dev ya se sacaron, así que es el único que corre.
+   - Si las Actions aparecen apagadas (pasa en los forks), entrá a la pestaña *Actions* y tocá **“I understand my workflows, go ahead and enable them”**.
+   - Para publicar sin mergear: *Settings → Environments → github-pages → Deployment branches* → agregá `claude/home-tasks-web-app-pi7hsu`, y después *Actions → “Orden · GitHub Pages” → Run workflow*.
 2. **Abrirla en Safari:** `https://inetik.github.io/domain/`
 3. **Instalarla enseguida:** Compartir → **Agregar a pantalla de inicio** → Agregar. Ojo: iOS guarda por separado los datos de Safari y los de la app instalada, así que cargá tus cosas **desde la app instalada** (si ya cargaste algo en Safari: Ajustes → Guardar copia, y después Restaurar desde la app).
 
