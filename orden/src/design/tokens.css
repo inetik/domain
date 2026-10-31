@@ -1,0 +1,120 @@
+/*
+ * Orden — tokens de diseño (equivalente a las "variables" de Figma).
+ * Primitivos → semánticos → utilidades de Tailwind (ver index.css @theme).
+ */
+
+:root {
+  /* Espaciado 8pt */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 40px;
+  --space-8: 48px;
+
+  /* Radios */
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 150ms;
+  --dur-base: 250ms;
+  --dur-slow: 400ms;
+
+  /* Ambientes */
+  --room-living: #7c9cff;
+  --room-cocina: #ff9f5a;
+  --room-pieza: #b48cff;
+  --room-bano: #4fd1c5;
+  --room-taller: #f6c945;
+  --room-general: #9aa4b2;
+
+  /* Estados */
+  --success: #34d399;
+  --warn: #fbbf24;
+  --danger: #f87171;
+
+  /* Marca */
+  --accent: #c6f432;
+  --accent-ink: #0b0b10;
+
+  /* Safe areas */
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+}
+
+/* Oscuro (por defecto) */
+:root,
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0b0b10;
+  --bg-elevated: #101016;
+  --surface-1: #15151c;
+  --surface-2: #1d1d26;
+  --surface-3: #282833;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --text: #f5f5f7;
+  --text-2: #a8a8b3;
+  --text-3: #8a8a96;
+  --accent-text: #c6f432;
+  --accent-stroke: #c6f432;
+  /* Variantes de color para texto (en oscuro, iguales al color base) */
+  --room-living-ink: var(--room-living);
+  --room-cocina-ink: var(--room-cocina);
+  --room-pieza-ink: var(--room-pieza);
+  --room-bano-ink: var(--room-bano);
+  --room-taller-ink: var(--room-taller);
+  --room-general-ink: var(--room-general);
+  --warn-ink: var(--warn);
+  --danger-ink: var(--danger);
+  --success-ink: var(--success);
+  --glass: rgba(21, 21, 28, 0.72);
+  --scrim: rgba(0, 0, 0, 0.55);
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.25);
+  --shadow-2: 0 8px 32px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.3);
+  --glow: 0 0 0 1px rgba(198, 244, 50, 0.25), 0 8px 32px rgba(198, 244, 50, 0.18);
+  --scene-floor: #1a1a22;
+  --scene-wall: #2a2a35;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --bg: #f4f2ec;
+  --bg-elevated: #fbfaf7;
+  --surface-1: #ffffff;
+  --surface-2: #efece4;
+  --surface-3: #e3dfd4;
+  --border: rgba(20, 20, 30, 0.08);
+  --border-strong: rgba(20, 20, 30, 0.16);
+  --text: #15151b;
+  --text-2: #565662;
+  --text-3: #6e6e7a;
+  --accent-text: #4d6b00;
+  --accent-stroke: #6f9a00;
+  /* Texto de color con contraste AA sobre el fondo claro */
+  --room-living-ink: #3f5fd6;
+  --room-cocina-ink: #b85413;
+  --room-pieza-ink: #7446d1;
+  --room-bano-ink: #0f7d74;
+  --room-taller-ink: #876400;
+  --room-general-ink: #5b6472;
+  --warn-ink: #a15c07;
+  --danger-ink: #c2362f;
+  --success-ink: #0f7a4f;
+  --glass: rgba(255, 255, 255, 0.78);
+  --scrim: rgba(20, 20, 30, 0.35);
+  --shadow-1: 0 1px 2px rgba(20, 20, 30, 0.06), 0 4px 16px rgba(20, 20, 30, 0.06);
+  --shadow-2: 0 12px 40px rgba(20, 20, 30, 0.14), 0 2px 6px rgba(20, 20, 30, 0.06);
+  --glow: 0 0 0 1px rgba(77, 107, 0, 0.2), 0 8px 32px rgba(140, 190, 20, 0.25);
+  --scene-floor: #e9e5da;
+  --scene-wall: #ffffff;
+  --room-taller: #e0b21f;
+}
