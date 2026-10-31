@@ -115,7 +115,7 @@ export function Segmented<T extends string>({
             role="radio"
             aria-checked={active}
             onClick={() => onChange(o.value)}
-            className={cn('relative h-10 flex-1 rounded-xl px-3 text-footnote font-medium transition-colors', active ? 'text-ink' : 'text-ink-3')}
+            className={cn('relative h-11 flex-1 rounded-xl px-3 text-footnote font-medium transition-colors', active ? 'text-ink' : 'text-ink-3')}
           >
             {active && <motion.span layoutId={`seg-${id}`} className="absolute inset-0 rounded-xl bg-surface-1 shadow-1" transition={spring.snappy} />}
             <span className="relative">{o.label}</span>

@@ -57,11 +57,19 @@ export function ListaScreen({ id }: { id: string }) {
               </IconButton>
               <IconButton
                 label="Borrar lista"
-                onClick={async () => {
-                  await deleteList(custom.id)
-                  showToast({ message: `Lista “${custom.name}” borrada (las tareas siguen)`, tone: 'warn' })
-                  navigate('/listas')
-                }}
+                onClick={() =>
+                  showToast({
+                    message: `¿Borrar la lista “${custom.name}”? Las tareas siguen.`,
+                    tone: 'warn',
+                    action: {
+                      label: 'Borrar',
+                      onClick: async () => {
+                        await deleteList(custom.id)
+                        navigate('/listas')
+                      },
+                    },
+                  })
+                }
               >
                 <Trash2 className="size-4.5 text-danger-ink" />
               </IconButton>

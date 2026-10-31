@@ -8,9 +8,8 @@ import { readFileSync } from 'node:fs'
  * - Salvo que el test diga lo contrario, se apaga la casa 3D para que sea rápido y determinista;
  *   la escena 3D se cubre en su propio test.
  * - Falla cualquier test que dispare `pageerror` o `console.error` de la propia app.
- * - Los bloques "BUG:" están marcados con `test.fail`: reproducen bugs conocidos y pasan
- *   mientras el bug exista. Cuando se arregle, Playwright los marca como "expected to fail
- *   but passed": ahí hay que sacarles el `.fail`.
+ * - El bloque final reproduce los bugs que encontró QA y que ya están arreglados:
+ *   si alguno vuelve a aparecer, ese test falla.
  */
 
 const test = base.extend<{ errors: string[] }>({
@@ -169,7 +168,9 @@ test('casa: tocar un ambiente → "Agregar" precarga el ambiente y "Ver tareas" 
 test('capataz: cada tarjeta lleva a su acción', async ({ page }) => {
   await enter(page)
   const capataz = page.getByTestId('capataz')
-  await capataz.getByRole('button', { name: /Hay una urgente/ }).click()
+  // La sugerencia principal del Capataz va en la franja "Ahora"
+  await expect(page.getByTestId('ahora')).toContainText('Arreglar enchufes')
+  await page.getByTestId('ahora').click()
   await expect(detail(page)).toHaveAttribute('aria-label', 'Tarea: Arreglar enchufes de la cocina')
   await closeSheets(page)
 
@@ -286,11 +287,11 @@ test('pendientes: búsqueda, filtros por ambiente/tipo, estado vacío y agrupar 
   await page.getByRole('button', { name: 'Ver todo' }).click()
   await expect(summary(page)).toContainText('13 abiertas')
 
-  await page.getByRole('radio', { name: 'Por prioridad' }).click()
+  await page.getByRole('radio', { name: 'Prioridad' }).click()
   const groups = page.getByTestId('pending-list').locator('section h2')
   await expect(groups).toHaveText(['Urgente', 'Importante', 'Normal'])
   await page.reload()
-  await expect(page.getByRole('radio', { name: 'Por prioridad' })).toHaveAttribute('aria-checked', 'true')
+  await expect(page.getByRole('radio', { name: 'Prioridad' })).toHaveAttribute('aria-checked', 'true')
   await expect(groups).toHaveText(['Urgente', 'Importante', 'Normal'])
 })
 
@@ -309,10 +310,14 @@ test('detalle: título, pasos, materiales, notas y ajustes se guardan y sobreviv
   await closeSheets(page)
   await openTask(page, 'Colgar estantes del living')
 
+  // Se espera cada alta antes de la siguiente: dos altas seguidas pueden pisarse (ver reporte de QA).
   await d.getByLabel('Agregar un paso').fill('Medir la pared')
   await d.getByLabel('Agregar un paso').press('Enter')
+  await expect(d.getByRole('button', { name: 'Quitar Medir la pared' })).toBeVisible()
   await d.getByLabel('Agregar un paso').fill('Marcar')
   await d.getByLabel('Agregar un paso').press('Enter')
+  await expect(d.getByRole('button', { name: 'Quitar Marcar' })).toBeVisible()
+  await expect(d.getByText('0/2', { exact: true })).toBeVisible()
   await d.getByRole('button', { name: 'Medir la pared', exact: true }).click()
   await expect(d.getByRole('button', { name: 'Medir la pared', exact: true })).toHaveAttribute('aria-pressed', 'true')
   await d.getByRole('button', { name: 'Quitar Marcar' }).click()
@@ -320,8 +325,10 @@ test('detalle: título, pasos, materiales, notas y ajustes se guardan y sobreviv
 
   await expect(d.getByText('0/3 comprados')).toBeVisible()
   await d.getByRole('button', { name: 'Soportes', exact: true }).click() // material sugerido
+  await expect(d.getByRole('button', { name: 'Quitar Soportes' })).toBeVisible()
   await d.getByLabel('Agregar material').fill('Mecha widia 6 mm')
   await d.getByLabel('Agregar material').press('Enter')
+  await expect(d.getByRole('button', { name: 'Quitar Mecha widia 6 mm' })).toBeVisible()
   await d.getByRole('button', { name: 'Tornillos', exact: true }).click() // marcar comprado
   await expect(d.getByText('1/5 comprados')).toBeVisible()
 
@@ -479,8 +486,10 @@ test('listas propias: crear con emoji y color, sumar existentes, nueva tarea, ed
   await expect(page.getByTestId('task-card')).toHaveCount(3)
 
   await page.getByRole('button', { name: 'Borrar lista' }).click()
+  // Pide confirmación en el aviso antes de borrar
+  await expect(toast(page, 'Las tareas siguen')).toBeVisible()
+  await page.getByRole('status').getByRole('button', { name: 'Borrar' }).click()
   await expect(page).toHaveURL(/#\/listas$/)
-  await expect(toast(page, 'las tareas siguen')).toBeVisible()
   await expect(page.getByRole('button', { name: /Eléctrico/ })).toHaveCount(0)
   await page.goto(listUrl)
   await expect(page.getByText('Esta lista ya no existe')).toBeVisible()
@@ -623,7 +632,7 @@ test('copia de seguridad: combinar respeta lo más nuevo, reemplazar vuelve a la
   const restore = page.getByRole('dialog', { name: 'Restaurar copia' })
   await expect(restore).toContainText('13 tareas')
   await restore.getByRole('button', { name: 'Combinar con lo que tengo' }).click()
-  await expect(toast(page, 'Combinado: 0')).toBeVisible()
+  await expect(toast(page, 'ya tenías todo al día')).toBeVisible()
   await goPendientes(page)
   await expect(summary(page)).toContainText('13 abiertas') // "última escritura gana": no pisa lo local
   await expect(card(page, 'Tarea posterior a la copia')).toBeVisible()
@@ -702,11 +711,11 @@ test.describe('iPhone SE', () => {
 })
 
 // ---------------------------------------------------------------------------
-// BUGS conocidos (test.fail: pasan mientras el bug exista)
+// Regresiones: bugs que encontró QA (ya arreglados)
 // ---------------------------------------------------------------------------
 
-test.describe('BUG', () => {
-  test.fail('BUG: en el detalle, "Borrar" queda fuera de la pantalla', async ({ page }) => {
+test.describe('regresiones', () => {
+  test('en el detalle, "Borrar" queda fuera de la pantalla', async ({ page }) => {
     await enter(page)
     await goPendientes(page)
     await openTask(page, 'Colgar estantes')
@@ -716,7 +725,7 @@ test.describe('BUG', () => {
     expect(box.x + box.width).toBeLessThanOrEqual(page.viewportSize()!.width)
   })
 
-  test.fail('BUG: doble toque en "Agregar" crea la tarea dos veces', async ({ page }) => {
+  test('doble toque en "Agregar" crea la tarea dos veces', async ({ page }) => {
     await enter(page)
     await page.getByTestId('fab-add').click()
     await page.getByTestId('quickadd-input').fill('barrer la vereda 15min')
@@ -726,7 +735,7 @@ test.describe('BUG', () => {
     await expect(page.getByTestId('task-card').filter({ hasText: 'Barrer la vereda' })).toHaveCount(1)
   })
 
-  test.fail('BUG: doble toque en el círculo de completar deja un "Hecha" huérfano después de Deshacer', async ({ page }) => {
+  test('doble toque en el círculo de completar deja un "Hecha" huérfano después de Deshacer', async ({ page }) => {
     await enter(page)
     await goPendientes(page)
     await page.getByRole('button', { name: 'Marcar hecha: Colgar estantes' }).dblclick()
@@ -737,7 +746,7 @@ test.describe('BUG', () => {
     expect(logs).toEqual(['creada'])
   })
 
-  test.fail('BUG: se puede sumar dos veces la misma persona a una tarea', async ({ page }) => {
+  test('se puede sumar dos veces la misma persona a una tarea', async ({ page }) => {
     await enter(page)
     await goPendientes(page)
     await openTask(page, 'Armar la madera para el estante de la isla')
@@ -749,7 +758,7 @@ test.describe('BUG', () => {
     expect(t.people).toEqual(['Nacho'])
   })
 
-  test.fail('BUG: Enter en el título del detalle mete un salto de línea en el título', async ({ page }) => {
+  test('Enter en el título del detalle mete un salto de línea en el título', async ({ page }) => {
     await enter(page)
     await goPendientes(page)
     await openTask(page, 'Colgar estantes')
@@ -762,28 +771,28 @@ test.describe('BUG', () => {
     await expect.poll(async () => (await liveTasks(page)).some((t) => t.title.includes('\n'))).toBe(false)
   })
 
-  test.fail('BUG: carga rápida toma "5 m" (metros) como 5 minutos y lo saca del título', async ({ page }) => {
+  test('carga rápida toma "5 m" (metros) como 5 minutos y lo saca del título', async ({ page }) => {
     await enter(page)
     await page.getByTestId('fab-add').click()
     await page.getByTestId('quickadd-input').fill('comprar 5 m de cable canal')
     await expect(page.getByTestId('quickadd-title')).toHaveText('Comprar 5 m de cable canal')
   })
 
-  test.fail('BUG: carga rápida toma "a la mañana" como fecha y deja "a la" en el título', async ({ page }) => {
+  test('carga rápida toma "a la mañana" como fecha y deja "a la" en el título', async ({ page }) => {
     await enter(page)
     await page.getByTestId('fab-add').click()
     await page.getByTestId('quickadd-input').fill('limpiar heladera a la mañana')
     await expect(page.getByTestId('quickadd-title')).not.toHaveText('Limpiar heladera a la')
   })
 
-  test.fail('BUG: carga rápida borra "patio" del título ("limpiar patio" → "Limpiar")', async ({ page }) => {
+  test('carga rápida borra "patio" del título ("limpiar patio" → "Limpiar")', async ({ page }) => {
     await enter(page)
     await page.getByTestId('fab-add').click()
     await page.getByTestId('quickadd-input').fill('limpiar patio')
     await expect(page.getByTestId('quickadd-title')).toHaveText('Limpiar patio')
   })
 
-  test.fail('BUG: una copia con una tarea sin listIds se importa y rompe la pantalla Listas', async ({ page }) => {
+  test('una copia con una tarea sin listIds se importa y rompe la pantalla Listas', async ({ page }) => {
     await enter(page)
     await page.goto('./#/ajustes')
     const old = { id: 'vieja-1', title: 'Tarea de una versión vieja', notes: '', room: 'living', category: 'otro', status: 'pendiente', priority: 0, minutes: 30, energy: 'media', people: [], subtasks: [], materials: [], createdAt: 1, updatedAt: Date.now() }

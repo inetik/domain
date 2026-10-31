@@ -1,5 +1,6 @@
 import { isoDate } from '../lib/dates'
 import { newerThanLocal } from './merge'
+import { normalizeAll, normalizeList, normalizeLog, normalizeTask } from './normalize'
 import { db, setMeta } from './schema'
 import type { LogEntry, Photo, Task, TaskList } from './types'
 
@@ -58,8 +59,17 @@ export interface ImportResult {
   photos: number
 }
 
-export async function importBackup(file: BackupFile, mode: 'merge' | 'replace'): Promise<ImportResult> {
-  const photos: Photo[] = file.photos.map(({ data, type, ...rest }) => ({ ...rest, blob: base64ToBlob(data, type) }))
+export async function importBackup(raw: BackupFile, mode: 'merge' | 'replace'): Promise<ImportResult> {
+  // Completar/descartar registros incompletos para que ninguna pantalla se rompa
+  const file = {
+    ...raw,
+    tasks: normalizeAll(raw.tasks, (t) => normalizeTask(t)),
+    lists: normalizeAll(raw.lists, (l) => normalizeList(l)),
+    logs: normalizeAll(raw.logs, normalizeLog),
+  }
+  const photos: Photo[] = raw.photos
+    .filter((p) => p && typeof p.data === 'string' && typeof p.id === 'string' && typeof p.taskId === 'string')
+    .map(({ data, type, ...rest }) => ({ ...rest, kind: rest.kind === 'despues' ? 'despues' : 'antes', blob: base64ToBlob(data, type || 'image/jpeg') }))
   return db.transaction('rw', [db.tasks, db.lists, db.logs, db.photos, db.meta], async () => {
     if (mode === 'replace') {
       await Promise.all([db.tasks.clear(), db.lists.clear(), db.logs.clear(), db.photos.clear()])

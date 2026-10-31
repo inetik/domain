@@ -10,7 +10,7 @@ import { Button, IconButton } from '../../components/ui/Button'
 import { Chip } from '../../components/ui/Chip'
 import { Segmented } from '../../components/ui/Feedback'
 import { Sheet } from '../../components/ui/Sheet'
-import { duplicateTask, setTaskInList, toggleMaterial, toggleSubtask, updateTask } from '../../db/repo'
+import { addPerson, duplicateTask, mutateTask, setTaskInList, toggleMaterial, toggleSubtask, updateTask } from '../../db/repo'
 import { db } from '../../db/schema'
 import { CATEGORY_IDS, type Energy, type Priority, type Task } from '../../db/types'
 import { spring } from '../../design/motion'
@@ -103,11 +103,15 @@ function TaskBody({ task }: { task: Task }) {
   useDebounced(notes, (v) => v !== task.notes && updateTask(task.id, { notes: v }))
 
   const patch = (p: Partial<Task>) => updateTask(task.id, p)
+  // Para listas (pasos, materiales, personas): el cambio se calcula sobre lo guardado,
+  // así dos toques rápidos no se pisan.
+  const mutate = (fn: (t: Task) => Partial<Task>) => mutateTask(task.id, fn)
   const subDone = task.subtasks.filter((s) => s.done).length
   const suggestions = suggestMaterials(task.title).filter((m) => !task.materials.some((x) => x.name.toLowerCase() === m.toLowerCase()))
-  const people = knownPeople(tasks).filter((p) => !task.people.includes(p))
+  const people = knownPeople(tasks).filter((p) => !task.people.some((x) => x.toLowerCase() === p.toLowerCase()))
 
   const complete = () => {
+    if (celebrate) return
     setCelebrate(true)
     setTimeout(() => {
       actions.complete(task)
@@ -119,7 +123,14 @@ function TaskBody({ task }: { task: Task }) {
     <div className="pb-8">
       <AutoTextarea
         value={title}
-        onChange={(e) => setTitle(e.target.value)}
+        onChange={(e) => setTitle(e.target.value.replace(/\n+/g, ' '))}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault()
+            e.currentTarget.blur()
+          }
+        }}
+        enterKeyHint="done"
         rows={1}
         aria-label="Título"
         className="mt-2 w-full resize-none bg-transparent text-[26px] leading-tight font-semibold tracking-tight text-ink outline-none"
@@ -191,11 +202,11 @@ function TaskBody({ task }: { task: Task }) {
               checked={s.done}
               label={s.title}
               onToggle={() => toggleSubtask(task.id, s.id)}
-              onRemove={() => patch({ subtasks: task.subtasks.filter((x) => x.id !== s.id) })}
+              onRemove={() => mutate((t) => ({ subtasks: t.subtasks.filter((x) => x.id !== s.id) }))}
             />
           ))}
         </AnimatePresence>
-        <AddRow placeholder="Agregar un paso" onAdd={(v) => patch({ subtasks: [...task.subtasks, { id: uid(), title: v, done: false }] })} />
+        <AddRow placeholder="Agregar un paso" onAdd={(v) => mutate((t) => ({ subtasks: [...t.subtasks, { id: uid(), title: v, done: false }] }))} />
       </Section>
 
       {/* Materiales */}
@@ -207,15 +218,15 @@ function TaskBody({ task }: { task: Task }) {
               checked={m.bought}
               label={m.name}
               onToggle={() => toggleMaterial(task.id, m.id)}
-              onRemove={() => patch({ materials: task.materials.filter((x) => x.id !== m.id) })}
+              onRemove={() => mutate((t) => ({ materials: t.materials.filter((x) => x.id !== m.id) }))}
             />
           ))}
         </AnimatePresence>
-        <AddRow placeholder="Agregar material" onAdd={(v) => patch({ materials: [...task.materials, { id: uid(), name: v, bought: false }] })} />
+        <AddRow placeholder="Agregar material" onAdd={(v) => mutate((t) => ({ materials: [...t.materials, { id: uid(), name: v, bought: false }] }))} />
         {suggestions.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-1.5">
             {suggestions.map((m) => (
-              <Chip key={m} size="sm" icon={<Plus className="size-3" />} onClick={() => patch({ materials: [...task.materials, { id: uid(), name: m, bought: false }] })}>
+              <Chip key={m} size="sm" icon={<Plus className="size-3" />} onClick={() => mutate((t) => ({ materials: [...t.materials, { id: uid(), name: m, bought: false }] }))}>
                 {m}
               </Chip>
             ))}
@@ -311,17 +322,17 @@ function TaskBody({ task }: { task: Task }) {
         <Label>Con quién</Label>
         <div className="flex flex-wrap gap-2">
           {task.people.map((p) => (
-            <Chip key={p} selected onClick={() => patch({ people: task.people.filter((x) => x !== p) })} ariaLabel={`Quitar a ${p}`}>
+            <Chip key={p} selected onClick={() => mutate((t) => ({ people: t.people.filter((x) => x !== p) }))} ariaLabel={`Quitar a ${p}`}>
               {p} <X className="size-3.5" />
             </Chip>
           ))}
           {people.map((p) => (
-            <Chip key={p} icon={<Plus className="size-3.5" />} onClick={() => patch({ people: [...task.people, p] })}>
+            <Chip key={p} icon={<Plus className="size-3.5" />} onClick={() => addPerson(task.id, p)}>
               {p}
             </Chip>
           ))}
         </div>
-        <AddRow placeholder="Sumar persona (ej: Nacho)" onAdd={(v) => patch({ people: [...task.people, v.charAt(0).toUpperCase() + v.slice(1)] })} />
+        <AddRow placeholder="Sumar persona (ej: Nacho)" onAdd={(v) => addPerson(task.id, v)} />
         {lists.length > 0 && (
           <>
             <Label>Listas</Label>

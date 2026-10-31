@@ -44,8 +44,9 @@ function QuickAddSheet({ open, prefill: quickAdd }: { open: boolean; prefill: Qu
   const { tasks, lists } = useData()
   const [text, setText] = useState(quickAdd?.text ?? '')
   const [override, setOverride] = useState<Override>(quickAdd?.room ? { room: quickAdd.room } : {})
-  const [people, setPeople] = useState<string[] | null>(null)
-  const [due, setDue] = useState<string | null | undefined>(undefined)
+  const [removedPeople, setRemovedPeople] = useState<string[]>([])
+  const [removedDue, setRemovedDue] = useState<string | null>(null)
+  const sending = useRef(false)
   const [added, setAdded] = useState(0)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const people0 = useMemo(() => knownPeople(tasks), [tasks])
@@ -62,12 +63,13 @@ function QuickAddSheet({ open, prefill: quickAdd }: { open: boolean; prefill: Qu
   const category = override.category ?? parsed.category
   const minutes = override.minutes ?? parsed.minutes
   const priority = override.priority ?? parsed.priority
-  const finalPeople = people ?? parsed.people
-  const finalDue = due === undefined ? parsed.due : (due ?? undefined)
+  const finalPeople = parsed.people.filter((p) => !removedPeople.includes(p))
+  const finalDue = parsed.due && parsed.due !== removedDue ? parsed.due : undefined
   const canAdd = parsed.title.length > 1
 
   const submit = async (again: boolean) => {
-    if (!canAdd) return
+    if (!canAdd || sending.current) return
+    sending.current = true
     haptic('success')
     const task = await addTask({
       title: parsed.title,
@@ -93,9 +95,10 @@ function QuickAddSheet({ open, prefill: quickAdd }: { open: boolean; prefill: Qu
     if (again) {
       setText('')
       setOverride(quickAdd?.room ? { room: quickAdd.room } : {})
-      setPeople(null)
-      setDue(undefined)
+      setRemovedPeople([])
+      setRemovedDue(null)
       setAdded((n) => n + 1)
+      sending.current = false
     } else {
       closeQuickAdd()
     }
@@ -184,12 +187,12 @@ function QuickAddSheet({ open, prefill: quickAdd }: { open: boolean; prefill: Qu
             </p>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {finalPeople.map((p) => (
-                <Chip key={p} size="sm" icon={<Users className="size-3.5" />} onClick={() => setPeople(finalPeople.filter((x) => x !== p))} ariaLabel={`Quitar a ${p}`}>
+                <Chip key={p} size="sm" icon={<Users className="size-3.5" />} onClick={() => setRemovedPeople((r) => [...r, p])} ariaLabel={`Quitar a ${p}`}>
                   {p} <X className="size-3" />
                 </Chip>
               ))}
               {finalDue && (
-                <Chip size="sm" icon={<CalendarDays className="size-3.5" />} onClick={() => setDue(null)} ariaLabel="Quitar fecha">
+                <Chip size="sm" icon={<CalendarDays className="size-3.5" />} onClick={() => setRemovedDue(finalDue ?? null)} ariaLabel="Quitar fecha">
                   {dueLabel(finalDue)} <X className="size-3" />
                 </Chip>
               )}

@@ -9,9 +9,10 @@ import { Segmented } from '../../components/ui/Feedback'
 import { Sheet } from '../../components/ui/Sheet'
 import { importBackup, readBackupFile, saveBackup, type BackupFile } from '../../db/backup'
 import { wipeAll } from '../../db/repo'
-import { db } from '../../db/schema'
+import { db, setMeta } from '../../db/schema'
 import { seedIfNeeded } from '../../db/seed'
 import { rise, stagger } from '../../design/motion'
+import { plural } from '../../lib/catalog'
 import { daysAgo, dayLabel } from '../../lib/dates'
 import { isStandalone, requestPersistentStorage } from '../../lib/device'
 import { InstallGuide } from '../onboarding/InstallGuide'
@@ -136,6 +137,7 @@ export function AjustesScreen() {
                 onClick={async () => {
                   await wipeAll()
                   await seedIfNeeded()
+                  await setMeta('welcomed', true)
                   setConfirmWipe(false)
                   showToast({ message: 'Empezaste de cero', tone: 'warn' })
                 }}
@@ -163,7 +165,8 @@ export function AjustesScreen() {
           <div className="pb-2">
             <h2 className="mt-1 font-serif text-[28px] leading-none text-ink">Restaurar copia</h2>
             <p className="mt-3 text-callout text-ink-2">
-              La copia tiene {pending.tasks.length} tareas, {pending.lists.length} listas y {pending.photos.length} fotos ({dayLabel(pending.exportedAt).toLowerCase()}).
+              La copia tiene {plural(pending.tasks.length, 'tarea', 'tareas')}, {plural(pending.lists.length, 'lista', 'listas')} y {plural(pending.photos.length, 'foto', 'fotos')} (
+              {dayLabel(pending.exportedAt).toLowerCase()}).
             </p>
             <div className="mt-5 space-y-2">
               <Button
@@ -173,7 +176,7 @@ export function AjustesScreen() {
                 onClick={async () => {
                   const r = await importBackup(pending, 'merge')
                   setPending(null)
-                  showToast({ message: `Combinado: ${r.tasks} tareas actualizadas`, tone: 'success' })
+                  showToast({ message: r.tasks ? `Combinado: ${plural(r.tasks, 'tarea actualizada', 'tareas actualizadas')}` : 'Combinado: ya tenías todo al día', tone: 'success' })
                 }}
               >
                 Combinar con lo que tengo

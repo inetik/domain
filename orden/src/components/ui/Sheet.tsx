@@ -1,5 +1,5 @@
 import { AnimatePresence, motion, useDragControls, type PanInfo } from 'motion/react'
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { spring } from '../../design/motion'
 import { cn } from '../../lib/cn'
@@ -58,6 +58,19 @@ function useKeyboardInset(): number {
 function SheetPanel({ onClose, label, children, header, footer, tall, className }: SheetProps) {
   const controls = useDragControls()
   const keyboard = useKeyboardInset()
+  const panel = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null
+    // Si adentro algo ya pide el foco (p. ej. el campo de carga rápida), se lo dejamos
+    const t = setTimeout(() => {
+      if (!panel.current?.contains(document.activeElement)) panel.current?.focus({ preventScroll: true })
+    }, 80)
+    return () => {
+      clearTimeout(t)
+      if (previous?.isConnected && previous.id !== 'orden-keyboard-proxy') previous.focus({ preventScroll: true })
+    }
+  }, [])
 
   useEffect(() => lockScroll(), [])
   useEffect(() => {
@@ -85,8 +98,25 @@ function SheetPanel({ onClose, label, children, header, footer, tall, className 
         role="dialog"
         aria-modal="true"
         aria-label={label}
+        ref={panel}
+        tabIndex={-1}
+        onKeyDown={(e) => {
+          // Mantener el foco del teclado dentro de la hoja
+          if (e.key !== 'Tab' || !panel.current) return
+          const items = panel.current.querySelectorAll<HTMLElement>('button:not([disabled]), input, textarea, select, [href], [tabindex]:not([tabindex="-1"])')
+          if (!items.length) return
+          const first = items[0]
+          const last = items[items.length - 1]
+          if (e.shiftKey && (document.activeElement === first || document.activeElement === panel.current)) {
+            e.preventDefault()
+            last.focus()
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault()
+            first.focus()
+          }
+        }}
         className={cn(
-          'relative flex w-full max-w-xl flex-col overflow-hidden rounded-t-[28px] border-t border-line bg-bg-elevated shadow-2',
+          'relative flex w-full max-w-xl flex-col overflow-hidden rounded-t-[28px] border-t border-line bg-bg-elevated shadow-2 outline-none',
           tall ? 'h-[92%]' : 'max-h-[92%]',
           className,
         )}

@@ -5,6 +5,8 @@ export const isAlive = (t: Task) => !t.deletedAt
 export const isDone = (t: Task) => t.status === 'hecha'
 export const isOpen = (t: Task) => !t.deletedAt && t.status !== 'hecha'
 export const isSnoozed = (t: Task, now = Date.now()) => isOpen(t) && !!t.snoozedUntil && t.snoozedUntil > now
+/** Abierta y no pospuesta: lo que cuenta como "pendiente" en todas las pantallas. */
+export const isActive = (t: Task, now = Date.now()) => isOpen(t) && !isSnoozed(t, now)
 
 /** Índice de Orden: porcentaje resuelto, ponderado por tiempo estimado. */
 export function orderIndex(tasks: Task[]): number {
@@ -20,13 +22,14 @@ export function orderIndex(tasks: Task[]): number {
 
 export function roomSummary(tasks: Task[], room: RoomId) {
   const inRoom = tasks.filter((t) => isAlive(t) && t.room === room)
-  const open = inRoom.filter((t) => t.status !== 'hecha')
+  const open = inRoom.filter((t) => isActive(t))
+  const done = inRoom.filter((t) => t.status === 'hecha').length
   return {
     total: inRoom.length,
     open: open.length,
-    done: inRoom.length - open.length,
+    done,
     minutes: open.reduce((a, t) => a + t.minutes, 0),
-    progress: inRoom.length ? (inRoom.length - open.length) / inRoom.length : 0,
+    progress: inRoom.length ? done / inRoom.length : 0,
   }
 }
 

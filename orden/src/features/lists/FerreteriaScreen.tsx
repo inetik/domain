@@ -23,7 +23,7 @@ export function FerreteriaScreen() {
 
   const toggle = async (item: ShoppingItem) => {
     haptic(item.bought ? 'light' : 'success')
-    const refs = item.refs.map((r) => ({ taskId: r.taskId, materialId: r.materialId }))
+    const refs = item.refs.filter((r) => r.bought === item.bought).map((r) => ({ taskId: r.taskId, materialId: r.materialId }))
     await setMaterialBought(refs, !item.bought)
     if (!item.bought) showToast({ message: `${item.name}: comprado`, tone: 'success', action: { label: 'Deshacer', onClick: () => setMaterialBought(refs, false) } })
   }
@@ -118,7 +118,7 @@ function Row({ item, onToggle, onOpenTask }: { item: ShoppingItem; onToggle: () 
         </p>
         <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
           {item.refs.map((r) => (
-            <button key={r.materialId} type="button" onClick={() => onOpenTask(r.taskId)} className="inline-flex min-h-7 items-start gap-1.5 py-1 text-left text-caption text-ink-3">
+            <button key={r.materialId} type="button" onClick={() => onOpenTask(r.taskId)} className="inline-flex min-h-9 items-start gap-1.5 py-2 text-left text-caption text-ink-3">
               <span className="mt-[5px] size-1.5 shrink-0 rounded-full" style={{ background: ROOMS[r.room].color }} />
               {r.taskTitle}
             </button>

@@ -11,7 +11,7 @@ import { rise, stagger } from '../../design/motion'
 import { CATEGORIES, formatMinutes, PRIORITY_LABEL, ROOM_ORDER, ROOMS } from '../../lib/catalog'
 import { ls } from '../../lib/device'
 import { normalize } from '../../lib/id'
-import { isOpen, isSnoozed } from '../../lib/stats'
+import { isActive, isOpen, isSnoozed } from '../../lib/stats'
 import { TaskCard } from './TaskCard'
 
 type GroupBy = 'ambiente' | 'tipo' | 'prioridad'
@@ -48,7 +48,7 @@ export function PendientesScreen({ initialRoom }: { initialRoom?: string }) {
   const open = filtered.filter((t) => isOpen(t) && !isSnoozed(t))
   const snoozed = filtered.filter((t) => isSnoozed(t))
   const done = filtered.filter((t) => t.status === 'hecha').sort((a, b) => (b.completedAt ?? 0) - (a.completedAt ?? 0))
-  const totalOpen = tasks.filter(isOpen)
+  const totalOpen = tasks.filter((t) => isActive(t))
   const minutes = open.reduce((a, t) => a + t.minutes, 0)
   const groups = useMemo(() => group(open, groupBy), [open, groupBy])
   const filtering = !!(room || category || query)

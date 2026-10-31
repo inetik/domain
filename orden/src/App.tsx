@@ -26,7 +26,7 @@ import { PendientesScreen } from './features/tasks/PendientesScreen'
 import { QuickAdd } from './features/tasks/QuickAdd'
 import { TaskDetail } from './features/tasks/TaskDetail'
 import { isIOS, isStandalone, requestPersistentStorage } from './lib/device'
-import { isOpen } from './lib/stats'
+import { isActive } from './lib/stats'
 
 export default function App() {
   return (
@@ -87,7 +87,7 @@ function Shell() {
     if (isIOS() && !isStandalone()) setTimeout(() => setGuide(true), 500)
   }
 
-  const badge = tasks.filter(isOpen).length
+  const badge = tasks.filter((t) => isActive(t)).length
   const routeKey = route.name + ('id' in route ? route.id : '')
   useLayoutEffect(() => {
     window.scrollTo({ top: 0 })
@@ -145,7 +145,7 @@ function Crash({ error, reset }: { error: Error; reset: () => void }) {
     <div className="mx-auto flex min-h-[70dvh] max-w-md flex-col items-center justify-center px-6 text-center">
       <p className="font-serif text-[34px] leading-none text-ink">Algo se trabó</p>
       <p className="mt-3 text-callout text-ink-2">Tus datos están a salvo en el teléfono. Probá de nuevo; si sigue, guardá una copia desde Ajustes.</p>
-      <p className="mt-3 max-w-full truncate text-caption text-ink-3">{error.message}</p>
+      <p className="mt-3 max-w-full truncate text-caption text-ink-3">Detalle técnico: {error.message}</p>
       <div className="mt-6 flex gap-2">
         <Button onClick={() => window.location.reload()}>Recargar</Button>
         <Button variant="primary" onClick={reset}>

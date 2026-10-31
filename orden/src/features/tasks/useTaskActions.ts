@@ -13,6 +13,7 @@ export function useTaskActions() {
       async complete(task: Task) {
         haptic('success')
         const logId = await completeTask(task.id)
+        if (!logId) return // ya estaba hecha (doble toque)
         showToast({ message: `¡Hecha! ${task.title}`, tone: 'success', action: { label: 'Deshacer', onClick: () => revertTask(task, logId) } })
         // ¿Era la última del ambiente (o de toda la casa)? Festejo.
         const open = await db.tasks.filter((t) => !t.deletedAt && t.status !== 'hecha').toArray()
@@ -22,6 +23,7 @@ export function useTaskActions() {
       async reopen(task: Task) {
         haptic()
         const logId = await reopenTask(task.id)
+        if (!logId) return
         showToast({ message: 'Volvió a pendientes', action: { label: 'Deshacer', onClick: () => revertTask(task, logId) } })
       },
       async start(task: Task) {

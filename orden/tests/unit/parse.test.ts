@@ -31,6 +31,28 @@ describe('parseQuickAdd', () => {
     expect(parseQuickAdd('limpiar azulejos del baño', [], NOW).title).toBe('Limpiar azulejos del baño')
   })
 
+  it('casos raros que encontró QA', () => {
+    const metros = parseQuickAdd('comprar 5 m de cable canal', [], NOW)
+    expect(metros.title).toBe('Comprar 5 m de cable canal')
+    expect(metros.minutesDetected).toBe(false)
+    expect(parseQuickAdd('cortar madera a 1.20 m', [], NOW).title).toBe('Cortar madera a 1.20 m')
+    const manana = parseQuickAdd('limpiar heladera a la mañana', [], NOW)
+    expect(manana.due).toBeUndefined()
+    expect(manana.title).toBe('Limpiar heladera a la mañana')
+    const pasado = parseQuickAdd('pasado mañana limpiar heladera', [], NOW)
+    expect(pasado.due).toBe('2026-11-01')
+    expect(pasado.title).toBe('Limpiar heladera')
+    expect(parseQuickAdd('limpiar patio', [], NOW)).toMatchObject({ title: 'Limpiar patio', room: 'general' })
+    expect(parseQuickAdd('colgar espejo!', [], NOW)).toMatchObject({ title: 'Colgar espejo', priority: 1 })
+    const yLimpiar = parseQuickAdd('pintar con Nacho y limpiar', [], NOW)
+    expect(yLimpiar.people).toEqual(['Nacho'])
+    expect(yLimpiar.title).toBe('Pintar y limpiar')
+    expect(parseQuickAdd('Pintar Con Rodillo', [], NOW).people).toEqual([])
+    expect(parseQuickAdd('cambiar lamparita del pasillo', [], NOW).category).toBe('electricidad')
+    const lunes = parseQuickAdd('ordenar placard el lunes que viene', [], NOW)
+    expect(lunes).toMatchObject({ title: 'Ordenar placard', due: '2026-11-02' })
+  })
+
   it('no confunde "con cable" con una persona', () => {
     const p = parseQuickAdd('armar conexión con cable canal para la tele', [], NOW)
     expect(p.people).toEqual([])

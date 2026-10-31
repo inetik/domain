@@ -59,10 +59,25 @@ export async function addTask(input: NewTask): Promise<Task> {
 }
 
 /** Aplica cambios a una tarea y los anota en el registro. Devuelve el id de la entrada del registro. */
-export async function updateTask(id: string, patch: Partial<Task>, logType: LogType | null = 'editada', detail?: string): Promise<string | undefined> {
+export function updateTask(id: string, patch: Partial<Task>, logType: LogType | null = 'editada', detail?: string): Promise<string | undefined> {
+  return mutateTask(id, () => patch, logType, detail)
+}
+
+/**
+ * Como updateTask, pero el cambio se calcula a partir de la tarea tal como está guardada
+ * (dentro de la transacción). Así dos toques rápidos no se pisan entre sí.
+ */
+export async function mutateTask(
+  id: string,
+  change: (task: Task) => Partial<Task> | null,
+  logType: LogType | null = 'editada',
+  detail?: string,
+): Promise<string | undefined> {
   const logId = await db.transaction('rw', db.tasks, db.logs, async () => {
     const task = await db.tasks.get(id)
     if (!task) return undefined
+    const patch = change(task)
+    if (!patch) return undefined
     const next = { ...task, ...patch, updatedAt: Date.now() }
     await db.tasks.put(next)
     if (logType) {
@@ -83,8 +98,9 @@ export async function updateTask(id: string, patch: Partial<Task>, logType: LogT
   return logId
 }
 
+/** Si ya estaba hecha no hace nada (evita anotaciones dobles por doble toque). */
 export function completeTask(id: string) {
-  return updateTask(id, { status: 'hecha', completedAt: Date.now(), snoozedUntil: undefined }, 'hecha')
+  return mutateTask(id, (t) => (t.status === 'hecha' ? null : { status: 'hecha', completedAt: Date.now(), snoozedUntil: undefined }), 'hecha')
 }
 
 export function startTask(id: string) {
@@ -92,7 +108,7 @@ export function startTask(id: string) {
 }
 
 export function reopenTask(id: string) {
-  return updateTask(id, { status: 'pendiente', completedAt: undefined }, 'reabierta')
+  return mutateTask(id, (t) => (t.status !== 'hecha' ? null : { status: 'pendiente', completedAt: undefined }), 'reabierta')
 }
 
 export function snoozeTask(id: string, days = 1) {
@@ -130,18 +146,20 @@ export async function duplicateTask(id: string) {
   })
 }
 
-export async function toggleSubtask(taskId: string, subtaskId: string) {
-  const task = await db.tasks.get(taskId)
-  if (!task) return
-  const subtasks = task.subtasks.map((s) => (s.id === subtaskId ? { ...s, done: !s.done } : s))
-  await updateTask(taskId, { subtasks })
+export function toggleSubtask(taskId: string, subtaskId: string) {
+  return mutateTask(taskId, (t) => ({ subtasks: t.subtasks.map((s) => (s.id === subtaskId ? { ...s, done: !s.done } : s)) }))
 }
 
-export async function toggleMaterial(taskId: string, materialId: string) {
-  const task = await db.tasks.get(taskId)
-  if (!task) return
-  const materials = task.materials.map((m) => (m.id === materialId ? { ...m, bought: !m.bought } : m))
-  await updateTask(taskId, { materials })
+export function toggleMaterial(taskId: string, materialId: string) {
+  return mutateTask(taskId, (t) => ({ materials: t.materials.map((m) => (m.id === materialId ? { ...m, bought: !m.bought } : m)) }))
+}
+
+/** Suma una persona sin duplicar (sin importar mayúsculas). */
+export function addPerson(taskId: string, name: string) {
+  const clean = name.trim().replace(/\s+/g, ' ')
+  if (!clean) return Promise.resolve(undefined)
+  const pretty = clean.charAt(0).toUpperCase() + clean.slice(1)
+  return mutateTask(taskId, (t) => (t.people.some((p) => p.toLowerCase() === clean.toLowerCase()) ? null : { people: [...t.people, pretty] }))
 }
 
 /** Marca un material como comprado en todas las tareas que lo piden. */

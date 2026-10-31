@@ -1,8 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { newerThanLocal } from './merge'
+import { normalizeAll, normalizeList, normalizeLog, normalizeTask } from './normalize'
 import { onLocalChange } from './repo'
 import { db, getMeta, setMeta } from './schema'
-import type { LogEntry, Task, TaskList } from './types'
+import type { Task, TaskList } from './types'
 
 /**
  * Sincronización opcional con Supabase.
@@ -69,6 +70,11 @@ export async function saveCloudConfig(url: string, key: string) {
   const clean = url.trim().replace(/\/+$/, '')
   if (!/^https:\/\/[\w.-]+$/.test(clean)) throw new Error('La URL tiene que ser del estilo https://xxxx.supabase.co')
   if (key.trim().length < 20) throw new Error('La clave parece incompleta.')
+  // Probar la conexión antes de guardar: así los errores aparecen acá y no más tarde
+  const { createClient } = await import('@supabase/supabase-js')
+  const probe = createClient(clean, key.trim(), { auth: { persistSession: false, autoRefreshToken: false } })
+  const { error } = await probe.from('orden_records').select('id', { head: true, count: 'exact' }).limit(1)
+  if (error) throw new Error(humanError(error.message || 'No hay conexión con la nube.'))
   await setMeta('cloud', { url: clean, key: key.trim() } satisfies CloudConfig)
   client = null
 }
@@ -101,7 +107,8 @@ function humanError(message: string): string {
   if (/email not confirmed/i.test(message)) return 'Confirmá tu email (revisá tu correo) y volvé a entrar.'
   if (/already registered/i.test(message)) return 'Ese email ya tiene cuenta: tocá "Entrar".'
   if (/relation .* does not exist|orden_records/i.test(message)) return 'Falta crear la tabla: corré el SQL en Supabase.'
-  if (/failed to fetch|network/i.test(message)) return 'No hay conexión con la nube.'
+  if (/failed to fetch|network|fetch failed|load failed/i.test(message)) return 'No pude conectarme: revisá la URL y tu internet.'
+  if (/invalid api key|jwt|apikey/i.test(message)) return 'La clave no es válida: usá la “anon public” de Settings → API.'
   return message
 }
 
@@ -162,9 +169,9 @@ async function doSync(): Promise<{ pulled: number; pushed: number }> {
     if (error) throw new Error(humanError(error.message))
     const rows = (data ?? []) as Row[]
     if (!rows.length) break
-    const tasks = rows.filter((r) => r.kind === 'task').map((r) => r.data as Task)
-    const lists = rows.filter((r) => r.kind === 'list').map((r) => r.data as TaskList)
-    const logs = rows.filter((r) => r.kind === 'log').map((r) => r.data as LogEntry)
+    const tasks = normalizeAll(rows.filter((r) => r.kind === 'task').map((r) => r.data), (t) => normalizeTask(t))
+    const lists = normalizeAll(rows.filter((r) => r.kind === 'list').map((r) => r.data), (l) => normalizeList(l))
+    const logs = normalizeAll(rows.filter((r) => r.kind === 'log').map((r) => r.data), normalizeLog)
     await db.transaction('rw', db.tasks, db.lists, db.logs, async () => {
       const t = newerThanLocal(await db.tasks.bulkGet(tasks.map((x) => x.id)).then((a) => a.filter(Boolean) as Task[]), tasks)
       const l = newerThanLocal(await db.lists.bulkGet(lists.map((x) => x.id)).then((a) => a.filter(Boolean) as TaskList[]), lists)

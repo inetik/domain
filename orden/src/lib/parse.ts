@@ -41,7 +41,7 @@ const ROOM_RULES: { room: RoomId; re: RegExp; weight: number }[] = [
 const CATEGORY_RULES: { category: CategoryId; re: RegExp }[] = [
   { category: 'venta', re: w('vender|venta|publicar|marketplace|mercado ?libre') },
   { category: 'compras', re: w('comprar|compra') },
-  { category: 'electricidad', re: w('enchufes?|tomas?|cablear|cableado|cables?|cable ?canal|luz|luces|led|lámpara|lampara|térmica|termica|eléctric\\p{L}*|electric\\p{L}*|disyuntor') },
+  { category: 'electricidad', re: w('enchufes?|tomas?|cablear|cableado|cables?|cable ?canal|luz|luces|led|lámparas?|lamparas?|lamparitas?|focos?|térmica|termica|eléctric\\p{L}*|electric\\p{L}*|disyuntor') },
   { category: 'carpinteria', re: w('madera|carpinter\\p{L}*|lijar|barnizar|serrucho|melamina') },
   { category: 'limpieza', re: w('limpiar|lavar|desengrasar|aspirar|limpieza|desinfectar') },
   { category: 'orden', re: w('acomodar|ordenar|organizar|guardar|clasificar|tirar') },
@@ -49,14 +49,15 @@ const CATEGORY_RULES: { category: CategoryId; re: RegExp }[] = [
   { category: 'arreglo', re: w('arreglar|reparar|pastina|silicona|tapar|pintar|dar vuelta|cambiar|ajustar|sellar') },
 ]
 
+const day = (name: string) => w(`(?:el |este |para el )?(?:${name})(?: que viene)?`)
 const WEEKDAYS: [RegExp, number][] = [
-  [w('(?:el )?domingo'), 0],
-  [w('(?:el )?lunes'), 1],
-  [w('(?:el )?martes'), 2],
-  [w('(?:el )?miércoles|(?:el )?miercoles'), 3],
-  [w('(?:el )?jueves'), 4],
-  [w('(?:el )?viernes'), 5],
-  [w('(?:el )?sábado|(?:el )?sabado'), 6],
+  [day('domingo'), 0],
+  [day('lunes'), 1],
+  [day('martes'), 2],
+  [day('miércoles|miercoles'), 3],
+  [day('jueves'), 4],
+  [day('viernes'), 5],
+  [day('sábado|sabado'), 6],
 ]
 
 function capitalize(text: string): string {
@@ -71,10 +72,10 @@ export function parseQuickAdd(input: string, knownPeople: string[] = [], now = D
 
   // Prioridad: "!", "!!", "urgente", "importante"
   let priority: Priority = 0
-  const bangs = text.match(/(?:^|\s)(!{1,3})(?=\s|$)/)
+  const bangs = text.match(/(!{1,3})(?=\s|$)/)
   if (bangs) {
     priority = bangs[1].length >= 2 ? 2 : 1
-    cut(/(?:^|\s)!{1,3}(?=\s|$)/g)
+    cut(/!{1,3}(?=\s|$)/g)
   }
   if (w('urgente').test(text)) {
     priority = 2
@@ -87,7 +88,7 @@ export function parseQuickAdd(input: string, knownPeople: string[] = [], now = D
   // Duración: "30min", "1h", "1 h 30", "1,5 hs", "media hora"
   let minutes = 0
   const hours = text.match(/(?<![\p{L}\d])(\d+(?:[.,]\d+)?)\s*(?:h|hs|hr|hrs|horas?)(?:\s*(\d{1,2})\s*(?:m|min|mins|minutos)?)?(?![\p{L}])/iu)
-  const mins = text.match(/(?<![\p{L}\d])(\d+)\s*(?:m|min|mins|minutos|')(?![\p{L}])/iu)
+  const mins = text.match(/(?<![\p{L}\d.,])(\d+)\s*(?:min|mins|minutos|')(?![\p{L}])/iu)
   if (hours) {
     minutes = Math.round(parseFloat(hours[1].replace(',', '.')) * 60) + (hours[2] ? parseInt(hours[2], 10) : 0)
     text = text.replace(hours[0], ' ')
@@ -102,28 +103,34 @@ export function parseQuickAdd(input: string, knownPeople: string[] = [], now = D
   // Personas: "con Nacho", "con Nacho y Sofi" (mayúscula) o nombres ya conocidos
   const people: string[] = []
   const known = new Map(knownPeople.map((p) => [normalize(p), p]))
-  text = text.replace(
-    /(?<![\p{L}])con\s+(\p{L}+)(?:\s+y\s+(\p{L}+))?/giu,
-    (match, a: string, b: string | undefined) => {
-      const names = [a, b].filter(Boolean) as string[]
-      const accepted = names.filter((n) => /^\p{Lu}/u.test(n) || known.has(normalize(n)))
-      if (accepted.length !== names.length || accepted.length === 0) return match
-      for (const n of accepted) {
-        const name = known.get(normalize(n)) ?? capitalize(n)
-        if (!people.includes(name)) people.push(name)
-      }
+  const isName = (n: string) => /^\p{Lu}/u.test(n) || known.has(normalize(n))
+  const addPerson = (n: string) => {
+    const name = known.get(normalize(n)) ?? capitalize(n)
+    if (!people.includes(name)) people.push(name)
+  }
+  text = text.replace(/(?<![\p{L}])con\s+(\p{L}+)(?:(\s+y\s+)(\p{L}+))?/gu, (match, a: string, and: string | undefined, b: string | undefined) => {
+    if (!isName(a)) return match
+    addPerson(a)
+    if (b && isName(b)) {
+      addPerson(b)
       return ' '
-    },
-  )
+    }
+    // "con Nacho y limpiar": el "y …" sigue siendo parte de la tarea
+    return b ? `${and}${b}` : ' '
+  })
 
   // Fecha: hoy, mañana, finde, días de la semana
   let due: string | undefined
+  const tomorrow = '(?<!(?:la|pasado)\\s)(?:mañana|manana)'
   if (w('hoy').test(text)) {
     due = isoDate(now)
     cut(w('(?:para )?hoy', 'giu'))
-  } else if (w('mañana|manana').test(text)) {
+  } else if (w('pasado (?:mañana|manana)').test(text)) {
+    due = isoDate(addDays(startOfDay(now), 2))
+    cut(w('(?:para )?pasado (?:mañana|manana)', 'giu'))
+  } else if (w(tomorrow).test(text)) {
     due = isoDate(addDays(startOfDay(now), 1))
-    cut(w('(?:para )?(?:mañana|manana)', 'giu'))
+    cut(w(`(?:para )?${tomorrow}`, 'giu'))
   } else if (w('finde|fin de semana|este finde').test(text)) {
     const day = new Date(now).getDay()
     due = isoDate(day === 0 || day === 6 ? now : nextWeekday(now, 6))
@@ -153,7 +160,7 @@ export function parseQuickAdd(input: string, knownPeople: string[] = [], now = D
   }
   // Si el ambiente quedó al final como etiqueta ("colgar cuadros living", "… en el baño"), se saca
   // del título; "de la cocina" se deja porque es parte natural de la frase.
-  const trailing = /\s+(?:en\s+(?:el|la|los|las)\s+)?(baños?|cocina|pieza|dormitorio|living|comedor|taller|patio)\s*$/iu
+  const trailing = /\s+(?:en\s+(?:el|la|los|las)\s+)?(baños?|cocina|pieza|dormitorio|living|comedor|taller)\s*$/iu
   const end = text.trimEnd()
   const tag = end.match(trailing)
   if (tag) {

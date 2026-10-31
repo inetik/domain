@@ -1,6 +1,6 @@
 import { AlarmClock, CalendarDays, Check, Flame, ListChecks, ShoppingCart, Users } from 'lucide-react'
 import { motion, useMotionValue, useTransform, type PanInfo } from 'motion/react'
-import { forwardRef, useEffect, useState } from 'react'
+import { forwardRef, useEffect, useRef, useState } from 'react'
 import { useUI } from '../../app/ui'
 import { Burst } from '../../components/Burst'
 import type { Task } from '../../db/types'
@@ -39,6 +39,7 @@ export const TaskCard = forwardRef<HTMLDivElement, TaskCardProps>(function TaskC
   const overdue = task.due && !done && task.due < isoDate(Date.now())
 
   const celebrate = () => {
+    if (celebrating) return
     if (done) {
       actions.reopen(task)
       return
@@ -48,7 +49,9 @@ export const TaskCard = forwardRef<HTMLDivElement, TaskCardProps>(function TaskC
   }
 
   // Al cruzar el umbral: vibración y el ícono "salta" para avisar que al soltar se aplica
+  const draggedAt = useRef(0)
   const onDrag = (_: unknown, info: PanInfo) => {
+    draggedAt.current = Date.now()
     const next = info.offset.x > THRESHOLD ? 'done' : info.offset.x < -THRESHOLD && !done ? 'snooze' : null
     if (next !== armed) {
       if (next) haptic()
@@ -118,7 +121,12 @@ export const TaskCard = forwardRef<HTMLDivElement, TaskCardProps>(function TaskC
             {celebrating && <Burst />}
           </button>
 
-          <button type="button" onClick={() => openTask(task.id)} className="min-w-0 flex-1 text-left" aria-label={`Abrir ${task.title}`}>
+          <button
+            type="button"
+            onClick={() => Date.now() - draggedAt.current > 300 && openTask(task.id)}
+            className="min-w-0 flex-1 text-left"
+            aria-label={`Abrir ${task.title}`}
+          >
             <div className="flex items-start gap-2">
               <span className={cn('min-w-0 flex-1 text-[16px] leading-snug font-medium text-ink', done && 'line-through decoration-ink-3')}>{task.title}</span>
               {task.priority > 0 && !done && (

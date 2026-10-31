@@ -14,7 +14,7 @@ import { spring } from '../../design/motion'
 import { formatMinutes, plural, ROOMS } from '../../lib/catalog'
 import { hasWebGL } from '../../lib/device'
 import { haptic } from '../../lib/haptics'
-import { isOpen, orderIndex, roomSummary } from '../../lib/stats'
+import { isActive, orderIndex, roomSummary } from '../../lib/stats'
 import { HouseFallback } from './HouseFallback'
 import type { RoomCounts } from './layout'
 
@@ -32,14 +32,14 @@ export function HouseCard() {
     const out = {} as Record<RoomId, RoomCounts>
     for (const id of ROOM_IDS) {
       const s = roomSummary(tasks, id)
-      const urgent = tasks.filter((t) => t.room === id && isOpen(t) && t.priority === 2).length
+      const urgent = tasks.filter((t) => t.room === id && isActive(t) && t.priority === 2).length
       out[id] = { open: s.open, done: s.done, urgent }
     }
     return out
   }, [tasks])
 
   const index = orderIndex(tasks)
-  const remaining = tasks.filter(isOpen).reduce((a, t) => a + t.minutes, 0)
+  const remaining = tasks.filter((t) => isActive(t)).reduce((a, t) => a + t.minutes, 0)
   const summary = selected ? roomSummary(tasks, selected) : null
   const select = (room: RoomId | null) => {
     if (room) haptic()

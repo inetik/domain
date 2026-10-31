@@ -26,6 +26,7 @@ export function Chip({ selected, onClick, color, icon, children, className, size
         'inline-flex shrink-0 items-center gap-1.5 rounded-full border font-medium whitespace-nowrap transition-colors',
         size === 'md' ? 'h-9 px-3.5 text-footnote' : 'h-7 px-2.5 text-caption',
         onClick && size === 'md' && 'min-h-11 h-11',
+        onClick && size === 'sm' && "relative after:absolute after:-inset-y-2 after:inset-x-0 after:content-['']",
         selected ? 'border-transparent bg-ink text-bg' : 'border-line bg-surface-1 text-ink-2',
         className,
       )}
