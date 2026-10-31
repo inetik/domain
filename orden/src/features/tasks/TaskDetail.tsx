@@ -26,10 +26,14 @@ import { useTaskActions } from './useTaskActions'
 
 export function TaskDetail() {
   const { taskId, closeTask } = useUI()
-  const task = useTask(taskId)
+  const live = useTask(taskId)
+  // Mantener el contenido visible mientras la hoja se va animando hacia abajo
+  const last = useRef(live)
+  if (live) last.current = live
+  const task = live ?? last.current
   return (
     <Sheet
-      open={!!taskId && !!task}
+      open={!!taskId && !!live}
       onClose={closeTask}
       label={task ? `Tarea: ${task.title}` : 'Tarea'}
       tall

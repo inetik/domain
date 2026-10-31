@@ -2,7 +2,7 @@ import { CalendarDays, Sparkles, Users, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useData } from '../../app/data'
-import { useUI } from '../../app/ui'
+import { useUI, type QuickAddPrefill } from '../../app/ui'
 import { AutoTextarea } from '../../components/ui/AutoTextarea'
 import { Button } from '../../components/ui/Button'
 import { Chip } from '../../components/ui/Chip'
@@ -30,15 +30,19 @@ interface Override {
 
 export function QuickAdd() {
   const { quickAdd, closeQuickAdd } = useUI()
+  // Conservar el último formulario durante la animación de salida
+  const last = useRef(quickAdd)
+  if (quickAdd) last.current = quickAdd
+  const prefill = quickAdd ?? last.current
   return (
     <Sheet open={!!quickAdd} onClose={closeQuickAdd} label="Nuevo pendiente" tall>
-      {quickAdd && <QuickAddForm key={JSON.stringify(quickAdd)} />}
+      {prefill && <QuickAddForm key={JSON.stringify(prefill)} prefill={prefill} />}
     </Sheet>
   )
 }
 
-function QuickAddForm() {
-  const { quickAdd, closeQuickAdd, showToast, openTask } = useUI()
+function QuickAddForm({ prefill: quickAdd }: { prefill: QuickAddPrefill }) {
+  const { closeQuickAdd, showToast, openTask } = useUI()
   const { tasks, lists } = useData()
   const [text, setText] = useState(quickAdd?.text ?? '')
   const [override, setOverride] = useState<Override>(quickAdd?.room ? { room: quickAdd.room } : {})
