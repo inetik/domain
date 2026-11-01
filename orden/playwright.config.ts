@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 
 // Se puede apuntar a otro servidor con ORDEN_URL (por defecto, `npm run preview`)
-const url = process.env.ORDEN_URL ?? 'http://localhost:4173/domain/'
+const url = process.env.ORDEN_URL ?? 'http://localhost:4173/'
 
 export default defineConfig({
   testDir: 'tests/e2e',
