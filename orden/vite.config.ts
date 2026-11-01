@@ -3,8 +3,8 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// GitHub Pages sirve el repo "domain" en /domain/. Se puede cambiar con ORDEN_BASE.
-const base = process.env.ORDEN_BASE ?? '/domain/'
+// Cloudflare Pages sirve la app en la raíz. Se puede cambiar con ORDEN_BASE.
+const base = process.env.ORDEN_BASE ?? '/'
 
 export default defineConfig({
   base,
@@ -14,6 +14,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'script-defer',
+      // El manifest viaja con la cookie de Cloudflare Access; sin esto, el login lo bloquea.
+      useCredentials: true,
       manifest: {
         id: base,
         name: 'Orden',

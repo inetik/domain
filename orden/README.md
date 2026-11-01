@@ -2,15 +2,52 @@
 
 **Los pendientes de tu casa, en orden.** Una app web que se instala en el iPhone como cualquier app (sin App Store), funciona sin internet y guarda todo en el teléfono.
 
-## Cómo tenerla en el iPhone
+## Dónde vive
 
-1. **Publicarla (una sola vez)** — en GitHub, repo `inetik/domain`:
-   - *Settings → Pages → Build and deployment → Source:* **GitHub Actions**.
-   - **Mergeá el PR #1 a `main`.** Al mergear, el workflow **“Orden · GitHub Pages”** construye y publica la app solo. Los workflows que el repo traía de is-a.dev ya se sacaron, así que es el único que corre.
-   - Si las Actions aparecen apagadas (pasa en los forks), entrá a la pestaña *Actions* y tocá **“I understand my workflows, go ahead and enable them”**.
-   - Para publicar sin mergear: *Settings → Environments → github-pages → Deployment branches* → agregá `claude/home-tasks-web-app-pi7hsu`, y después *Actions → “Orden · GitHub Pages” → Run workflow*.
-2. **Abrirla en Safari:** `https://inetik.github.io/domain/`
-3. **Instalarla enseguida:** Compartir → **Agregar a pantalla de inicio** → Agregar. Ojo: iOS guarda por separado los datos de Safari y los de la app instalada, así que cargá tus cosas **desde la app instalada** (si ya cargaste algo en Safari: Ajustes → Guardar copia, y después Restaurar desde la app).
+- **Código:** en este repo de GitHub, **privado**. Nadie más lo ve.
+- **App publicada:** en Cloudflare Pages, que lee el repo privado y publica sola cada cambio que llega a `main`. Está cerrada con **Cloudflare Access**: para abrirla hay que poner tu email y el código que te llega. No aparece en buscadores.
+- **Tus pendientes:** en el iPhone. No están en GitHub ni en Cloudflare.
+
+## Cómo publicarla (una sola vez)
+
+1. **Guardá tus datos** si ya usabas la app en la dirección vieja (`inetik.github.io/domain`): en la app, Ajustes → **Guardar copia** → Guardar en Archivos. La dirección nueva arranca de cero y después restaurás la copia.
+2. **Repo privado.** En GitHub, este repo → *Settings* → al fondo, *Danger Zone*:
+   - **Leave fork network**: un fork de un repo público no se puede hacer privado sin esto.
+   - **Change visibility → Make private**. La página vieja de github.io se apaga sola.
+3. **Cloudflare Pages.** En [dash.cloudflare.com](https://dash.cloudflare.com), con la cuenta gratis:
+   1. *Workers & Pages → Create → Pages → Connect to Git*. Si te ofrece crear un Worker, buscá la pestaña o el link de **Pages**.
+   2. Autorizá GitHub **solo para este repo** y elegilo.
+   3. Configurá:
+      | Campo | Valor |
+      |---|---|
+      | Project name | uno difícil de adivinar, ej. `orden-k7q2` (la app queda en `orden-k7q2.pages.dev`) |
+      | Production branch | `main` |
+      | Framework preset | None |
+      | Build command | `npm test && npm run build` |
+      | Build output directory | `dist` |
+      | Root directory | `orden` |
+      | Environment variable | `NODE_VERSION` = `22` |
+   4. **Save and Deploy**.
+4. **Login por email (Cloudflare Access).**
+   1. En el panel de Cloudflare entrá a *Zero Trust*. Elegí un nombre de equipo y el plan **Free**; puede pedirte un medio de pago aunque no cobre.
+   2. *Access → Applications → Add an application → Self-hosted*:
+      - **Domain:** `orden-k7q2.pages.dev`. Agregá también `*.orden-k7q2.pages.dev` para las vistas previas.
+      - **Session duration:** 1 month.
+      - **Policy:** Action *Allow* → Include → *Emails* → tu email.
+      - **Login method:** One-time PIN.
+   3. Ojo: el botón *Enable access policy* dentro del proyecto de Pages protege solo las vistas previas, no la app. Por eso se crea la aplicación a mano.
+5. **En el iPhone:**
+   1. Abrí `https://orden-k7q2.pages.dev` en **Safari**, poné tu email y el código que te llega.
+   2. Compartir → **Agregar a pantalla de inicio**.
+   3. Abrila desde el ícono. Puede pedirte el código una vez más dentro de la app.
+   4. Ajustes → **Restaurar copia** (si guardaste una en el paso 1).
+   5. Borrá el ícono viejo de Orden.
+
+iOS guarda por separado los datos de Safari y los de la app instalada: cargá tus cosas siempre **desde la app instalada**.
+
+**Si algo falla con el login en la app instalada** (el código se pide en loop o el ícono sale como captura de pantalla), tenés dos salidas:
+- En Access agregá otra aplicación *Self-hosted* con *Action: Bypass* solo para estas rutas, que no tienen datos tuyos: `orden-k7q2.pages.dev/manifest.webmanifest`, `orden-k7q2.pages.dev/icons/*` y `orden-k7q2.pages.dev/favicon.svg`.
+- Si sigue fallando, apagá Access. La app queda solo con la dirección secreta y fuera de buscadores.
 
 ## Qué tiene
 
@@ -39,7 +76,7 @@
 ```bash
 cd orden
 npm install
-npm run dev        # http://localhost:5173/domain/
+npm run dev        # http://localhost:5173/
 npm test           # tests unitarios (Vitest)
 npm run build      # build de producción en dist/
 npm run e2e        # tests end-to-end en viewport de iPhone (Playwright)
